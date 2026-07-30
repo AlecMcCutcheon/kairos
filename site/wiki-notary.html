@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Notary receipts · Wiki · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260730z" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="telemetry.html">Telemetry</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="use-cases.html">Use cases</a>
+        <a href="otp.html">OTP</a>
+        <a href="schema.html">Schema</a>
+      </nav>
+    </header>
+
+    <div class="wiki-layout">
+      <nav class="wiki-nav" aria-label="Wiki">
+        <p class="wiki-nav-title">Wiki</p>
+        <a href="wiki.html">Overview</a>
+        <a href="wiki-pulses-stamps.html">Pulses vs stamps</a>
+        <a href="wiki-gets.html">Get &amp; Subscribe</a>
+        <a href="wiki-api.html">API surfaces</a>
+        <a href="wiki-notary.html" aria-current="page">Notary receipts</a>
+        <a href="wiki-identity.html">Identity &amp; age</a>
+        <a href="wiki-security.html">Trust &amp; security</a>
+        <a href="wiki-otp.html">OTP</a>
+        <a href="wiki-hosting.html">Hosting</a>
+      </nav>
+
+      <main class="wiki-article prose">
+        <h1>Notary receipts</h1>
+        <p class="lede">
+          A receipt is portable JSON: “this content hash was sealed in
+          <code>[earliest, latest]</code> by these witnesses, with this
+          transcript digest” — backed by a Freenet Get of
+          <code>sealed_stamps</code>.
+        </p>
+
+        <h2>How to obtain one</h2>
+        <ol>
+          <li>
+            Your app calls
+            <code>open_stamp({ content_hash, nonce })</code> →
+            <code>request_id = hash:nonce</code>. Telemetry does not invent
+            opens — only apps with real content to notarize should.
+          </li>
+          <li>
+            Age- and reputation-eligible peers each
+            <code>observe_stamp</code> once (one row per
+            <code>node_id</code>). Network duty / Telemetry will help if
+            open requests exist.
+          </li>
+          <li>
+            After ≥5 distinct eligible observes (MAD-filtered), the contract
+            seals a weighted median + interval + transcript and updates
+            seal-history reputation. More than five observes is allowed
+            before seal; after seal, further observes are ignored.
+          </li>
+          <li>
+            <code>Get</code> Kairos; read
+            <code>sealed_stamps[request_id]</code>; export
+            <code>buildNotaryReceipt(…)</code>.
+          </li>
+        </ol>
+
+        <h2>Receipt fields (v1)</h2>
+        <pre class="secret-box" style="color: var(--muted); font-size: 0.78rem">{
+{
+  "schema": "kairos.notary.receipt.v1",
+  "request_id": "hash:nonce",
+  "contract_key": "…",
+  "content_hash": "…",
+  "median_wall_ms": 0,
+  "error_ms": 0,
+  "earliest_ms": 0,
+  "latest_ms": 0,
+  "witness_count": 0,
+  "witness_ids": [],
+  "transcript_digest": "…",
+  "sealed_at_ms": 0
+}
+        </pre>
+
+        <h2>Using a receipt later</h2>
+        <ul>
+          <li>
+            Re-Get the contract (or keep a snapshot) and check the sealed entry
+            still matches the transcript / interval.
+          </li>
+          <li>
+            Widen <code>error_ms</code> with local age since Get
+            (<code>effectiveErrorMs</code>) — do not treat a stale Get as tight
+            as a fresh seal.
+          </li>
+          <li>
+            “Not before / not after” helpers:
+            <code>assertNotBefore</code> / <code>assertNotAfter</code>.
+          </li>
+        </ul>
+
+        <div class="panel">
+          Pulses alone never produce a notary receipt. If
+          <code>sealed_stamps</code> is empty, there is nothing to notarize yet —
+          only keep-alive telemetry. The offline Demo page is gone; wire parsers
+          against this schema or a real sealed Get.
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> wiki · notary
+    </footer>
+    <script type="module" src="app.js?v=20260730z"></script>
+  </body>
+</html>

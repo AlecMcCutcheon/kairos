@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API surfaces · Wiki · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260730z" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="telemetry.html">Telemetry</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="use-cases.html">Use cases</a>
+        <a href="otp.html">OTP</a>
+        <a href="schema.html">Schema</a>
+      </nav>
+    </header>
+
+    <div class="wiki-layout">
+      <nav class="wiki-nav" aria-label="Wiki">
+        <p class="wiki-nav-title">Wiki</p>
+        <a href="wiki.html">Overview</a>
+        <a href="wiki-pulses-stamps.html">Pulses vs stamps</a>
+        <a href="wiki-gets.html">Get &amp; Subscribe</a>
+        <a href="wiki-api.html" aria-current="page">API surfaces</a>
+        <a href="wiki-notary.html">Notary receipts</a>
+        <a href="wiki-identity.html">Identity &amp; age</a>
+        <a href="wiki-security.html">Trust &amp; security</a>
+        <a href="wiki-otp.html">OTP</a>
+        <a href="wiki-hosting.html">Hosting</a>
+      </nav>
+
+      <main class="wiki-article prose">
+        <h1>API surfaces</h1>
+        <p class="lede">
+          Contract updates are small JSON deltas over Freenet
+          <code>Update</code>. Reads are <code>Get</code> /
+          <code>Subscribe</code> on the Kairos contract key. Signing prefers the
+          <code>kairos-identity</code> delegate.
+        </p>
+
+        <h2>1. Pulse (write)</h2>
+        <pre class="secret-box" style="color: var(--muted); font-size: 0.8rem">{
+{ "pulse": {
+    "node_id": "&lt;bs58 ed25519 vk&gt;",
+    "wall_ms": 0,
+    "monotonic_ms": 0,
+    "uncertainty_ms": 40,
+    "sig": "&lt;hex&gt;"
+} }
+        </pre>
+        <p>
+          Domain <code>kairos.pulse.v1</code>. Keeps the contract hosted and ages
+          the roster. Site helper: <code>submitPulse()</code> (delegate sign +
+          Update). Do not combine with a “Get” button — Get is read-only.
+        </p>
+
+        <h2>2. Open stamp (write)</h2>
+        <pre class="secret-box" style="color: var(--muted); font-size: 0.8rem">{
+{ "open_stamp": { "content_hash": "…", "nonce": "unique-per-request" } }
+        </pre>
+        <p>
+          Creates <code>open_stamps["hash:nonce"]</code>. Anyone can open; only
+          aged keys’ observes count toward seal.
+        </p>
+
+        <h2>3. Observe stamp (write)</h2>
+        <pre class="secret-box" style="color: var(--muted); font-size: 0.8rem">{
+{ "observe_stamp": {
+    "request_id": "hash:nonce",
+    "observation": { /* same fields as pulse, domain kairos.stamp.observe.v1 */ }
+} }
+        </pre>
+        <p>
+          Rejected if the witness is younger than ~1 hour on the roster. When
+          ≥ min witnesses survive MAD, the request moves to
+          <code>sealed_stamps</code>.
+        </p>
+
+        <h2>4. Get / Subscribe (read)</h2>
+        <p>
+          Get the contract; inspect <code>pulse</code> / <code>roster</code> /
+          <code>sealed_stamps</code>. With <code>subscribe: true</code>, the
+          gateway pushes <code>UpdateNotification</code> on later Updates — apps
+          re-Get or apply deltas then. See
+          <a href="wiki-gets.html">Get &amp; Subscribe</a>.
+        </p>
+
+        <h2>5. Identity delegate (local)</h2>
+        <p>
+          <code>EnsureIdentity</code>, <code>SignPulse</code>,
+          <code>SignStampObserve</code> (optional Export/Import). Auto-mints a
+          label like <code>kairos-a3f1…</code>. If the delegate is unavailable,
+          the site falls back to a durable browser key. See
+          <a href="wiki-identity.html">Identity &amp; age</a>.
+        </p>
+
+        <h2>6. Network duty (one call — help the oracle)</h2>
+        <p>
+          Separate pulse / observe / Get APIs stay available. For public-goods
+          hosting, apps can use one duty surface that <em>decides</em> what to
+          do from roster age + open stamps — over the same Freenet WebSocket
+          (not a new HTTP endpoint).
+        </p>
+        <ul>
+          <li>
+            <code>queryNetworkDuty()</code> — Get + return a plan (no writes).
+          </li>
+          <li>
+            <code>runNetworkDuty()</code> — execute the plan: always pulse
+            (keep-alive / age); if stamp-eligible (~1h), also
+            <code>observe_stamp</code> any open requests you have not signed.
+          </li>
+          <li>
+            <code>watchNetworkDuty()</code> — Subscribe + interval: keep
+            running duty automatically while your app is open.
+          </li>
+          <li>
+            <code>planNetworkDuty(state, identity)</code> — pure helper if you
+            already have state.
+          </li>
+        </ul>
+        <pre class="secret-box" style="color: var(--muted); font-size: 0.78rem">{
+// plan shape (kairos.network.duty.v1)
+{
+  "schema": "kairos.network.duty.v1",
+  "stamp_eligible": false,
+  "roster_age_ms": 0,
+  "min_age_ms": 3600000,
+  "open_count": 0,
+  "actions": [
+    { "type": "pulse", "reason": "…" },
+    { "type": "observe_stamp", "request_id": "hash:nonce", "reason": "…" }
+  ],
+  "summary": "pulse · aging …"
+}
+        </pre>
+        <p>
+          Telemetry’s timer/button uses <code>runNetworkDuty()</code>. “Get
+          only” uses <code>queryNetworkDuty()</code> so you can see what help
+          would look like without writing.
+        </p>
+
+        <h2>Client checklist (app author)</h2>
+        <ol>
+          <li>Ensure Kairos contract exists (Put once / Get).</li>
+          <li>Ensure identity (delegate or local).</li>
+          <li>
+            Prefer <code>watchNetworkDuty()</code> or
+            <code>runNetworkDuty()</code> on an interval while open — one call
+            covers keep-alive and seal help.
+          </li>
+          <li>
+            Continuous clock: Subscribe + <em>hardened</em> pulse tip (OTP
+            pattern) — not raw public median. Limits:
+            <a href="wiki-security.html">Trust &amp; security</a>.
+          </li>
+          <li>
+            Authoritative time for a hash: open → wait for seal → Get sealed
+            entry → build
+            <a href="wiki-notary.html">notary receipt</a>.
+          </li>
+        </ol>
+
+        <p>
+          JSON field reference:
+          <a href="schema.html">Schema</a> / repo <code>SCHEMA.md</code>.
+        </p>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> wiki · API
+    </footer>
+    <script type="module" src="app.js?v=20260730z"></script>
+  </body>
+</html>

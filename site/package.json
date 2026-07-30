@@ -1,0 +1,17 @@
+{
+  "name": "@kairos/site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:live": "vite build && cp dist-live/live.bundle.js . && cp dist-live/live.bundle.js.map . 2>/dev/null || true"
+  },
+  "dependencies": {
+    "@freenetorg/freenet-stdlib": "^0.3.0",
+    "@noble/ed25519": "^2.2.3",
+    "@noble/hashes": "^1.8.0",
+    "bs58": "^6.0.0"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
+}

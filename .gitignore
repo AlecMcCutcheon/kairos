@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-live/
+target/
+build/website-stage/
+*.wasm
+!site/public/*.wasm
+.DS_Store
+.env
+*.map

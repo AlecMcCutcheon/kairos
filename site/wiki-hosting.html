@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hosting · Wiki · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260730z" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="telemetry.html">Telemetry</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="use-cases.html">Use cases</a>
+        <a href="otp.html">OTP</a>
+        <a href="schema.html">Schema</a>
+      </nav>
+    </header>
+
+    <div class="wiki-layout">
+      <nav class="wiki-nav" aria-label="Wiki">
+        <p class="wiki-nav-title">Wiki</p>
+        <a href="wiki.html">Overview</a>
+        <a href="wiki-pulses-stamps.html">Pulses vs stamps</a>
+        <a href="wiki-gets.html">Get &amp; Subscribe</a>
+        <a href="wiki-api.html">API surfaces</a>
+        <a href="wiki-notary.html">Notary receipts</a>
+        <a href="wiki-identity.html">Identity &amp; age</a>
+        <a href="wiki-security.html">Trust &amp; security</a>
+        <a href="wiki-otp.html">OTP</a>
+        <a href="wiki-hosting.html" aria-current="page">Hosting</a>
+      </nav>
+
+      <main class="wiki-article prose">
+        <h1>Hosting / public goods</h1>
+        <p class="lede">
+          Freenet does not auto-keep unrelated contracts alive. Reciprocity is
+          <strong>client policy</strong>: apps that need time should soft-Get /
+          Subscribe (and often pulse) Kairos while they run.
+        </p>
+
+        <h2>While browsing this site</h2>
+        <p>
+          <a href="telemetry.html">Telemetry</a> and the
+          <a href="otp.html">OTP</a> lab auto-pulse on a timer so the oracle
+          stays warm on your node. Telemetry also auto-observes
+          <code>open_stamp</code> requests once your key is age-eligible (~1h),
+          so seals can form when enough peers help (≥5). Manual Get buttons do
+          not pulse.
+        </p>
+
+        <h2>Subscribe sharing</h2>
+        <p>
+          A Subscribe on the local gateway means authenticators and other apps
+          on that node can receive <code>UpdateNotification</code> when the
+          pulse map or seals change — more efficient than each client polling
+          Gets. See <a href="wiki-gets.html">Get &amp; Subscribe</a>.
+        </p>
+
+        <h2>While using other Freenet apps</h2>
+        <p>
+          Kairos really starts to matter when other Freenet apps and services
+          <strong>embed the API</strong> (Get / Subscribe / network duty) in
+          their frameworks so that people using those apps automatically
+          pulse and help observe — contributing to this shared good (and to
+          other public-goods contracts) without a separate chore. The mesh
+          only keeps these services possible if maintainers put time and
+          energy into wiring them in.
+        </p>
+        <p>
+          Apps such as GitForge can soft-host Kairos whenever open. Kairos
+          clients should soft-host a small public-goods set in return (Kairos
+          itself, optionally ForgeRegistry, this website). Exact keys are filled
+          when published — see repo
+          <code>docs/public-goods.md</code>. Limits and trust:
+          <a href="wiki-security.html">Trust &amp; security</a>.
+        </p>
+
+        <h2>What WASM cannot do</h2>
+        <p>
+          The time contract cannot “call back” to load GitForge. Only the
+          browser app, CLI, or a local delegate can subscribe to multiple keys.
+        </p>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> wiki · hosting
+    </footer>
+    <script type="module" src="app.js?v=20260730z"></script>
+  </body>
+</html>

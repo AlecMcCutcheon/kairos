@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OTP · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260730w" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="telemetry.html">Telemetry</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="use-cases.html">Use cases</a>
+        <a href="otp.html">OTP</a>
+        <a href="schema.html">Schema</a>
+      </nav>
+    </header>
+
+    <main class="section otp-page">
+      <h1>Network OTP</h1>
+      <p class="lede">
+        Shared secret + Freenet <strong>Subscribe</strong> on the Kairos
+        <strong>pulse map</strong>. A Get only <em>reads</em> that map — the
+        OTP clock is the median of current pulse observations (whoever is
+        keep-aliving; often one browser). Digits are <strong>TOTP</strong>
+        over those network-time bins. Pulsing is separate (background on this
+        page / Telemetry) — Get buttons do not write.
+        <a href="wiki-otp.html">How it works</a>.
+      </p>
+      <p id="lab-error" class="note-warn" hidden></p>
+
+      <div class="otp-toolbar">
+        <label class="otp-label-field">
+          Account
+          <input id="label" type="text" value="kairos@freenet" autocomplete="off" />
+        </label>
+        <button type="button" class="btn btn-ghost" id="new-secret">
+          New shared secret
+        </button>
+        <button type="button" class="btn btn-ghost" id="copy-secret">
+          Copy secret
+        </button>
+      </div>
+      <p class="otp-secret-line">
+        <span class="label">Secret</span>
+        <code id="secret" class="otp-secret"></code>
+      </p>
+
+      <div class="otp-split">
+        <section class="otp-device otp-device-auth" aria-label="Authenticator">
+          <header class="otp-device-top">
+            <span class="otp-device-dot" aria-hidden="true"></span>
+            <span class="otp-device-title">Authenticator</span>
+          </header>
+          <p class="otp-device-account" id="auth-account">kairos@freenet</p>
+          <p class="otp-device-issuer">Kairos · pulse map subscribe</p>
+          <div class="otp-code" id="code" aria-live="polite">——————</div>
+          <p class="otp-code-meta" id="code-meta">Waiting for pulse median…</p>
+          <div class="otp-ring-wrap" aria-label="Age of last pulse-median read">
+            <div class="otp-ring-track">
+              <i id="tick-bar"></i>
+            </div>
+            <div class="otp-ring-labels">
+              <span>Last pulse median read</span>
+              <span id="tick-label">—</span>
+            </div>
+          </div>
+          <div class="otp-bin-wrap" aria-label="Bin at last pulse median">
+            <div class="otp-ring-track">
+              <i id="forward-bar"></i>
+            </div>
+            <div class="otp-ring-labels">
+              <span>Bin at that median</span>
+              <span id="forward-label">—</span>
+            </div>
+          </div>
+          <p class="otp-device-status" id="auth-status"></p>
+        </section>
+
+        <section class="otp-device otp-device-verify" aria-label="Verify prompt">
+          <header class="otp-device-top">
+            <span class="otp-browser-chrome" aria-hidden="true">
+              <i></i><i></i><i></i>
+            </span>
+            <span class="otp-device-title">Verify</span>
+          </header>
+          <p class="otp-verify-prompt">
+            Enter the code from your authenticator. This side runs a
+            <strong>separate</strong> Freenet Get — not the frozen auth snapshot.
+          </p>
+          <label class="otp-verify-field">
+            One-time code
+            <input
+              id="verify-input"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              placeholder="000000"
+              maxlength="8"
+            />
+          </label>
+          <div class="otp-verify-actions">
+            <button type="button" class="btn btn-primary" id="verify-btn">
+              Verify with Get
+            </button>
+            <button type="button" class="btn btn-ghost" id="copy-code">
+              Fill from auth
+            </button>
+          </div>
+          <p id="verify-result" class="otp-verify-result" aria-live="polite"></p>
+          <p class="otp-device-status" id="verify-status"></p>
+        </section>
+      </div>
+
+      <div class="metrics" id="stamp-metrics" aria-live="polite"></div>
+      <pre class="secret-box" id="receipt" hidden></pre>
+    </main>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> · network OTP lab · not production MFA alone
+    </footer>
+
+    <script type="module" src="app.js?v=20260730w"></script>
+    <script type="module" src="live.bundle.js?v=20260730w"></script>
+  </body>
+</html>

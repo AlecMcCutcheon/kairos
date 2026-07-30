@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OTP · Wiki · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260730z" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="telemetry.html">Telemetry</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="use-cases.html">Use cases</a>
+        <a href="otp.html">OTP</a>
+        <a href="schema.html">Schema</a>
+      </nav>
+    </header>
+
+    <div class="wiki-layout">
+      <nav class="wiki-nav" aria-label="Wiki">
+        <p class="wiki-nav-title">Wiki</p>
+        <a href="wiki.html">Overview</a>
+        <a href="wiki-pulses-stamps.html">Pulses vs stamps</a>
+        <a href="wiki-gets.html">Get &amp; Subscribe</a>
+        <a href="wiki-api.html">API surfaces</a>
+        <a href="wiki-notary.html">Notary receipts</a>
+        <a href="wiki-identity.html">Identity &amp; age</a>
+        <a href="wiki-security.html">Trust &amp; security</a>
+        <a href="wiki-otp.html" aria-current="page">OTP</a>
+        <a href="wiki-hosting.html">Hosting</a>
+      </nav>
+
+      <main class="wiki-article prose">
+        <h1>One-time passwords on Freenet</h1>
+        <p class="lede">
+          Continuous OTP time uses a <strong>hardened pulse tip</strong>:
+          age-eligible (and seal-reputation-weighted) pulses, not the raw
+          public median. A jump guard holds the last tip if the map leaps more
+          than ~3 bins. Still <strong>demo-grade MFA</strong> — lead-by-example
+          hardening, not a finished adversary model. Digits are
+          <strong>TOTP</strong> over that tip. Limits:
+          <a href="wiki-security.html">Trust &amp; security</a>.
+        </p>
+
+        <h2>Algorithm</h2>
+        <p>
+          This is <strong>TOTP</strong> (time-based), not a counter HOTP
+          product. RFC 6238 defines TOTP by reusing the HOTP truncate as an
+          <em>inner function</em>:
+        </p>
+        <pre class="secret-box" style="color: var(--muted); font-size: 0.85rem;">
+TOTP(K, T)  =  HOTP(K, C)
+C           =  floor(T / X)     // X = 30s bin
+T           =  Kairos hardened pulse tip (ms)
+K           =  shared secret
+        </pre>
+        <p>
+          So when you see <code>HOTP(K, floor(T / 30s))</code>, that
+          <em>is</em> the TOTP definition — <code>C</code> comes from network
+          time <code>T</code>, not from “press button / increment counter”
+          (true HOTP, RFC 4226 alone). Naming the scheme TOTP is correct;
+          HOTP in the formula is only the HMAC-SHA1 truncate step.
+        </p>
+
+        <h2>Authenticator vs verify</h2>
+        <ol>
+          <li>Share a secret out of band.</li>
+          <li>
+            <strong>Authenticator</strong> Subscribes to Kairos
+            (<code>Get</code> + <code>subscribe: true</code>). On
+            <code>UpdateNotification</code> it re-reads state and updates its
+            hardened-tip belief.
+          </li>
+          <li>
+            <strong>Verify</strong> does an independent Get when checking a
+            code (same contract, separate read).
+          </li>
+          <li>
+            Both compute TOTP from their belief. Verifier accepts epochs with
+            enough probability mass under its σ window (staleness widens σ;
+            point estimate <code>t</code> only moves when the tip updates).
+          </li>
+        </ol>
+
+        <h2>Belief (why codes don’t coast on laptop time)</h2>
+        <ul>
+          <li>
+            Point estimate <code>t</code> = last adopted hardened tip (frozen
+            until Subscribe/Get refreshes it).
+          </li>
+          <li>
+            Local clock only widens uncertainty σ with age since that tip —
+            it does not advance <code>t</code>.
+          </li>
+          <li>
+            Digits change when a new tip moves <code>t</code> across a 30s
+            network-time bin (or belief mass shifts).
+          </li>
+        </ul>
+
+        <h2>What moves the tip</h2>
+        <p>
+          Someone must <strong>pulse</strong> (site network duty / another
+          client). A Get alone never advances the map. The OTP client prefers
+          aged, reputation-eligible pulses (weighted median); if too few are
+          available it bootstraps from all pulses with wider uncertainty. A
+          sudden multi-bin leap vs the last tip is held
+          (<code>pulse-hold</code>). With one witness, the tip is essentially
+          that witness’s last <code>wall_ms</code>.
+        </p>
+
+        <h2>Lab UI</h2>
+        <p>
+          The <a href="otp.html">OTP</a> page shows authenticator (Subscribe +
+          code) beside verify (separate Get). Not production MFA by itself —
+          the shared secret must stay secret; tip hardening is example-grade
+          resistance to casual Sybil pulse floods, not a security guarantee.
+        </p>
+        <p>
+          Why not sealed stamps for this lab? Stamps notarize a
+          <em>specific</em> content hash once ≥5 distinct peers observe. OTP
+          needs a continuously updating time source — the pulse map. Using
+          seals for every 30s epoch would mean opening a new stamp each bin and
+          waiting for five aged peers; that is the wrong tool. Use seals when
+          you need a portable “this hash around this interval” proof.
+        </p>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> wiki · OTP
+    </footer>
+    <script type="module" src="app.js?v=20260730z"></script>
+  </body>
+</html>

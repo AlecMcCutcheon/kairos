@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Identity &amp; age · Wiki · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260730z" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="telemetry.html">Telemetry</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="use-cases.html">Use cases</a>
+        <a href="otp.html">OTP</a>
+        <a href="schema.html">Schema</a>
+      </nav>
+    </header>
+
+    <div class="wiki-layout">
+      <nav class="wiki-nav" aria-label="Wiki">
+        <p class="wiki-nav-title">Wiki</p>
+        <a href="wiki.html">Overview</a>
+        <a href="wiki-pulses-stamps.html">Pulses vs stamps</a>
+        <a href="wiki-gets.html">Get &amp; Subscribe</a>
+        <a href="wiki-api.html">API surfaces</a>
+        <a href="wiki-notary.html">Notary receipts</a>
+        <a href="wiki-identity.html" aria-current="page">Identity &amp; age</a>
+        <a href="wiki-security.html">Trust &amp; security</a>
+        <a href="wiki-otp.html">OTP</a>
+        <a href="wiki-hosting.html">Hosting</a>
+      </nav>
+
+      <main class="wiki-article prose">
+        <h1>Identity &amp; age</h1>
+        <p class="lede">
+          No username signup. Each witness is an auto-minted ed25519 key with a
+          display label like <code>kairos-a3f1b2</code> (derived from the
+          pubkey). The contract only stores <code>node_id = bs58(pubkey)</code>.
+        </p>
+
+        <h2>Where the secret lives</h2>
+        <ol>
+          <li>
+            <strong>Preferred:</strong> Freenet delegate
+            <code>kairos-identity</code> —
+            <code>EnsureIdentity</code> / <code>SignPulse</code> /
+            <code>SignStampObserve</code>. Secret stays on the node.
+          </li>
+          <li>
+            <strong>Fallback:</strong> durable local key (memory + shared
+            <code>window.name</code> bag + localStorage when allowed) for
+            Freenet sandbox pages where storage is restricted.
+          </li>
+        </ol>
+        <p>
+          If the secret is wiped, a new key is minted. Roster age for that key
+          starts over (intentional Sybil cost).
+        </p>
+
+        <h2>Age gating</h2>
+        <p>
+          To <em>observe</em> stamps (help seal), a key must have been on the
+          Kairos roster for about <strong>one hour</strong>
+          (<code>last_seen − first_seen ≥ MIN_AGE_MS</code>). Same rule for
+          everyone.
+        </p>
+        <ul>
+          <li>Pulsing itself has <strong>no</strong> hourly rate limit.</li>
+          <li>
+            Age gating is not “one stamp per hour” — it is “key must be old
+            enough before its observe counts.”
+          </li>
+          <li>
+            Roster / eligible counts on Telemetry metrics show how many keys
+            meet that bar.
+          </li>
+        </ul>
+
+        <h2>Seal-history reputation</h2>
+        <p>
+          Roster rows also track <code>seals_included</code> and
+          <code>seals_outlier</code> — how often this key survived MAD into a
+          sealed stamp vs was dropped as an outlier. After a few seals exist
+          network-wide, keys below a reputation floor cannot observe stamps;
+          surviving observes are weighted (age × reputation) into the seal
+          median.
+        </p>
+        <ul>
+          <li>New keys start <strong>neutral</strong> (cold start).</li>
+          <li>
+            Score is <strong>not</strong> “agree with the live pulse median”
+            — that would let a Sybil flood exile honest peers.
+          </li>
+          <li>
+            Full trust map:
+            <a href="wiki-security.html">Trust &amp; security</a>.
+          </li>
+        </ul>
+
+        <h2>Telemetry list</h2>
+        <p>
+          Each pulse row shows the auto name, a pubkey preview (click to copy),
+          and agreement with the pulse median (bar length). Your row is tagged
+          <code>(you)</code>. Sealed stamps have a separate
+          <strong>Seal witnesses</strong> table (request id →
+          <code>witness_ids</code>).
+        </p>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> wiki · identity
+    </footer>
+    <script type="module" src="app.js?v=20260730z"></script>
+  </body>
+</html>

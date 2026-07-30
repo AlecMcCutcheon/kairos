@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Telemetry · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260730x" />
+  </head>
+  <body data-kairos-live="telemetry">
+    <header class="site-header">
+      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="telemetry.html">Telemetry</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="use-cases.html">Use cases</a>
+        <a href="otp.html">OTP</a>
+        <a href="schema.html">Schema</a>
+      </nav>
+    </header>
+
+    <main class="section">
+      <p class="live-pill" id="mode-pill">Starting…</p>
+      <h1>Oracle telemetry</h1>
+      <p class="lede">
+        Live view of the Kairos contract. Network duty runs in the background
+        on every site page (pulse, public example stamp, observe when eligible).
+        Median updates when the pulse map changes.
+      </p>
+      <p id="live-status" class="note-warn" hidden></p>
+      <p id="identity-status" class="lede" style="font-size: 0.9rem"></p>
+      <p id="last-action" hidden></p>
+
+      <h2>Pulse map (keep-alive)</h2>
+      <div class="metrics" id="metrics" aria-live="polite"></div>
+
+      <h2>Pulse witnesses</h2>
+      <p class="lede" style="font-size: 0.85rem">
+        Bar length = agreement with the pulse median (longer = closer). Closest
+        listed first. ✓ = stamp-eligible age.
+      </p>
+      <ul class="witness-list" id="witnesses"></ul>
+
+      <h2>Sealed stamps (authoritative)</h2>
+      <p class="lede" style="font-size: 0.9rem">
+        Duty keeps a deterministic public example open
+        (<code>kairos.public.example.v1:v1</code>) so this lab always has a
+        request to show; it recreates the same id if pruned. Seal still needs
+        ≥5 distinct aged peers. Real apps open their own content hashes.
+      </p>
+      <div class="metrics" id="sealed-metrics" aria-live="polite"></div>
+      <pre
+        class="secret-box"
+        id="sealed-list"
+        style="font-size: 0.75rem; max-height: 14rem; overflow: auto"
+      ></pre>
+
+      <h2>Seal witnesses</h2>
+      <p class="lede" style="font-size: 0.85rem">
+        Who entered each sealed stamp (<code>witness_ids</code>). Click a key
+        to copy. Newest seals first.
+      </p>
+      <div class="seal-witness-wrap" id="seal-witnesses" aria-live="polite"></div>
+    </main>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> · live Freenet telemetry
+    </footer>
+    <script type="module" src="app.js?v=20260730x"></script>
+    <script type="module" src="live.bundle.js?v=20260730x"></script>
+  </body>
+</html>

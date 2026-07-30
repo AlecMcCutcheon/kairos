@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pulses vs stamps · Wiki · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260730z" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="telemetry.html">Telemetry</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="use-cases.html">Use cases</a>
+        <a href="otp.html">OTP</a>
+        <a href="schema.html">Schema</a>
+      </nav>
+    </header>
+
+    <div class="wiki-layout">
+      <nav class="wiki-nav" aria-label="Wiki">
+        <p class="wiki-nav-title">Wiki</p>
+        <a href="wiki.html">Overview</a>
+        <a href="wiki-pulses-stamps.html" aria-current="page">Pulses vs stamps</a>
+        <a href="wiki-gets.html">Get &amp; Subscribe</a>
+        <a href="wiki-api.html">API surfaces</a>
+        <a href="wiki-notary.html">Notary receipts</a>
+        <a href="wiki-identity.html">Identity &amp; age</a>
+        <a href="wiki-security.html">Trust &amp; security</a>
+        <a href="wiki-otp.html">OTP</a>
+        <a href="wiki-hosting.html">Hosting</a>
+      </nav>
+
+      <main class="wiki-article prose">
+        <h1>Pulses vs stamps</h1>
+        <p class="lede">
+          Two surfaces share the same contract. Pulses keep the network warm.
+          Stamps notarize “this content existed around this time” with many
+          distinct witnesses.
+        </p>
+
+        <h2>Pulse (keep-alive)</h2>
+        <p>
+          A <strong>pulse</strong> is a signed observation: “this witness key
+          is alive and saw wall time <code>T</code>.” Anyone can pulse.
+          Effects:
+        </p>
+        <ul>
+          <li>Updates <code>pulse[node_id]</code> (latest reading).</li>
+          <li>
+            Accrues <code>roster</code> age (and later seal-history
+            reputation) for Sybil friction on stamp observes.
+          </li>
+          <li><strong>Never</strong> creates a sealed stamp by itself.</li>
+        </ul>
+        <p>
+          Telemetry’s “Median pulse” is the median of those live readings
+          (client-side). Useful telemetry. <strong>Sybil-floodable</strong> if
+          treated as truth — see
+          <a href="wiki-security.html">Trust &amp; security</a>. The OTP lab
+          uses a hardened tip (aged + reputation-weighted), not this raw
+          median. Witness bars: longer = closer to the telemetry median.
+        </p>
+
+        <h2>What a stamp request is</h2>
+        <p>
+          A stamp is <strong>not</strong> a free-floating clock tick. An
+          <em>app</em> that cares about a specific piece of data asks the
+          network: “when do aged peers think <em>now</em> is, for this
+          content?”
+        </p>
+        <ol>
+          <li>
+            App hashes something it cares about (commit, disclosure, message
+            id, …) → <code>content_hash</code>, picks a unique
+            <code>nonce</code>, calls <code>open_stamp</code>. That creates
+            <code>open_stamps["hash:nonce"]</code> — an open
+            <strong>request</strong>.
+          </li>
+          <li>
+            Age-eligible witnesses (~1h on roster; once a few seals exist,
+            also above a seal-history reputation floor) each call
+            <code>observe_stamp</code> with their signed wall time for that
+            request id. The contract stores
+            <strong>at most one observation per <code>node_id</code></strong>
+            (a map keyed by pubkey). The same peer cannot fill five slots;
+            re-observing overwrites their one row.
+          </li>
+          <li>
+            When ≥ <strong>5 distinct</strong> eligible observations remain after
+            MAD outlier filtering, the contract <strong>seals</strong>:
+            <em>weighted</em> median of those wall times (age ramp ×
+            reputation), error / <code>[earliest, latest]</code>,
+            witness list, transcript digest. Included vs MAD-dropped keys
+            update roster <code>seals_included</code> /
+            <code>seals_outlier</code>. The request leaves
+            <code>open_stamps</code> and lands in
+            <code>sealed_stamps</code>. Further observes on that id are no-ops.
+          </li>
+        </ol>
+        <p>
+          <strong>More than five</strong> is fine (up to a large per-request
+          cap). Five is the <em>minimum</em> to seal, not a maximum. Extra
+          distinct peers tighten / corroborate the median; they do not reopen
+          a new stamp automatically.
+        </p>
+
+        <h2>Why median / interval?</h2>
+        <p>
+          Each witness reports its own clock. The seal’s point estimate is a
+          <strong>reputation- and age-weighted median</strong> of MAD survivors
+          (robust to a few liars or skewed clocks; sustained outliers lose
+          weight over seals). <code>error_ms</code> and
+          <code>[earliest, latest]</code> bound how wide that agreement was at
+          seal time. Apps later widen error with local Get staleness. That is
+          the notarize surface — “this hash was sealed in this window by these
+          keys” — see <a href="wiki-notary.html">Notary receipts</a>.
+        </p>
+
+        <h2>Who opens stamps?</h2>
+        <p>
+          Duty keeps a deterministic public example open
+          (<code>kairos.public.example.v1:v1</code>) so the lab always has a
+          stamp request to show; if pruned, the same id is re-opened.
+          Telemetry / network duty <em>observe</em> open requests; they do not
+          invent arbitrary app content — only this fixed example (plus real
+          app opens).
+        </p>
+
+        <h2>Which clock for which job?</h2>
+        <ul>
+          <li>
+            <strong>Continuous OTP / live UI</strong> — hardened pulse tip
+            (<a href="wiki-otp.html">OTP</a>), not raw public median. Seals are
+            discrete notarize events; they are a poor ticking second-hand unless
+            an app opens a new stamp every epoch (heavy, needs ≥5 peers each
+            time).
+          </li>
+          <li>
+            <strong>Notarize / portable proof</strong> — sealed stamp +
+            receipt.
+          </li>
+          <li>
+            <strong>Telemetry</strong> — pulse map + help observe any open
+            requests; show sealed list when apps have opened stamps.
+          </li>
+        </ul>
+
+        <div class="panel">
+          Trust model in one line: <strong>5+ different aged keys</strong> with
+          seal-history reputation, each signing once per request — not one peer
+          repeating itself, and not the live pulse majority. Details:
+          <a href="wiki-security.html">Trust &amp; security</a>.
+        </div>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> wiki · pulses vs stamps
+    </footer>
+    <script type="module" src="app.js?v=20260730z"></script>
+  </body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Get &amp; Subscribe · Wiki · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260730z" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="telemetry.html">Telemetry</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="use-cases.html">Use cases</a>
+        <a href="otp.html">OTP</a>
+        <a href="schema.html">Schema</a>
+      </nav>
+    </header>
+
+    <div class="wiki-layout">
+      <nav class="wiki-nav" aria-label="Wiki">
+        <p class="wiki-nav-title">Wiki</p>
+        <a href="wiki.html">Overview</a>
+        <a href="wiki-pulses-stamps.html">Pulses vs stamps</a>
+        <a href="wiki-gets.html" aria-current="page">Get &amp; Subscribe</a>
+        <a href="wiki-api.html">API surfaces</a>
+        <a href="wiki-notary.html">Notary receipts</a>
+        <a href="wiki-identity.html">Identity &amp; age</a>
+        <a href="wiki-security.html">Trust &amp; security</a>
+        <a href="wiki-otp.html">OTP</a>
+        <a href="wiki-hosting.html">Hosting</a>
+      </nav>
+
+      <main class="wiki-article prose">
+        <h1>Get &amp; Subscribe</h1>
+        <p class="lede">
+          There is no special “get time” RPC. You <code>Get</code> (and
+          optionally <code>Subscribe</code>) the Kairos contract key over the
+          Freenet WebSocket. The response is the <strong>whole state blob</strong>.
+        </p>
+
+        <h2>State shape (always)</h2>
+        <pre class="secret-box" style="color: var(--muted); font-size: 0.8rem">{
+{
+  "schema_version": 2,
+  "roster": { "&lt;node_id&gt;": { first_seen_ms, last_seen_ms, pulse_count, seals_included, seals_outlier } },
+  "pulse":  { "&lt;node_id&gt;": { node_id, wall_ms, monotonic_ms, uncertainty_ms, sig } },
+  "open_stamps":   { "&lt;hash:nonce&gt;": { …observations… } },
+  "sealed_stamps": { "&lt;hash:nonce&gt;": { median, error, earliest, latest, witness_ids, … } }
+}
+        </pre>
+
+        <h2>Get is read-only</h2>
+        <p>
+          A Get does <strong>not</strong> write a pulse. Buttons or helpers
+          labeled Get / “Get pulse median” only read. Pulsing is a separate
+          <code>Update</code> (Telemetry’s “Pulse now”, or a background keep-alive
+          timer while a lab page is open).
+        </p>
+
+        <h2>If there are no sealed stamps yet</h2>
+        <p>
+          Get still succeeds. You receive roster + pulse (and maybe open
+          requests). That is normal on a young network or a lab that has only
+          been pulsing.
+        </p>
+        <ul>
+          <li>
+            <strong>Pulse map</strong> — latest signed wall times. Client
+            telemetry median ≠ OTP tip (OTP uses a hardened subset; see
+            <a href="wiki-security.html">Trust &amp; security</a>).
+          </li>
+          <li>
+            <strong>Roster</strong> — who has been pulsing, how long (age),
+            and seal-history counts for reputation.
+          </li>
+          <li>
+            <strong>sealed_stamps: {}</strong> — nothing to notarize yet. Do
+            not invent a seal from the pulse median.
+          </li>
+        </ul>
+
+        <h2>Subscribe (push)</h2>
+        <p>
+          Freenet <code>Get</code> can register <code>subscribe: true</code>.
+          When the contract updates (e.g. someone pulsed), the gateway sends
+          <code>UpdateNotification</code> on the same WebSocket. Clients refresh
+          state then — no timed Get poll required. Subscriptions are shared at
+          the gateway / connection level: one node can fan out notifications to
+          local apps that subscribed.
+        </p>
+        <p>
+          The <a href="otp.html">OTP</a> authenticator uses this path. Verify
+          still does an independent Get when you check a code.
+        </p>
+
+        <h2>Why the median looks NTP-precise</h2>
+        <ol>
+          <li>
+            Pulses embed millisecond <code>wall_ms</code> from each peer’s local
+            clock.
+          </li>
+          <li>
+            The UI formats the median with <code>toISOString()</code>.
+          </li>
+          <li>
+            With one witness, the median <em>is</em> that witness’s last pulse —
+            it jumps when they pulse again with a new wall time.
+          </li>
+        </ol>
+
+        <h2>When you want sealed time</h2>
+        <p>
+          After <code>open_stamp</code> + enough aged
+          <code>observe_stamp</code>s, Get the same contract and read
+          <code>sealed_stamps["hash:nonce"]</code>. Widen error with local
+          staleness after your Get (Byztime-style). Details:
+          <a href="wiki-notary.html">Notary receipts</a>.
+        </p>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> wiki · Get &amp; Subscribe
+    </footer>
+    <script type="module" src="app.js?v=20260730z"></script>
+  </body>
+</html>

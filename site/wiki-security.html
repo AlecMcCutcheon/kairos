@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trust &amp; security · Wiki · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260730z" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="telemetry.html">Telemetry</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="use-cases.html">Use cases</a>
+        <a href="otp.html">OTP</a>
+        <a href="schema.html">Schema</a>
+      </nav>
+    </header>
+
+    <div class="wiki-layout">
+      <nav class="wiki-nav" aria-label="Wiki">
+        <p class="wiki-nav-title">Wiki</p>
+        <a href="wiki.html">Overview</a>
+        <a href="wiki-pulses-stamps.html">Pulses vs stamps</a>
+        <a href="wiki-gets.html">Get &amp; Subscribe</a>
+        <a href="wiki-api.html">API surfaces</a>
+        <a href="wiki-notary.html">Notary receipts</a>
+        <a href="wiki-identity.html">Identity &amp; age</a>
+        <a href="wiki-security.html" aria-current="page">Trust &amp; security</a>
+        <a href="wiki-otp.html">OTP</a>
+        <a href="wiki-hosting.html">Hosting</a>
+      </nav>
+
+      <main class="wiki-article prose">
+        <h1>Trust &amp; security</h1>
+        <p class="lede">
+          Kairos leads by hardening the demo paths, but the threat model is
+          not finished MFA or a Byzantine clock. This page is the honest map:
+          what the contract actually resists, and what still fails under a
+          determined flood.
+        </p>
+
+        <h2>Where strength is</h2>
+        <ul>
+          <li>
+            <strong>Sealed stamps</strong> — notarize surface. Needs
+            ≥5 <em>distinct</em> aged keys after MAD. One peer cannot fill five
+            slots. Median + <code>error_ms</code> /
+            <code>[earliest, latest]</code> +
+            <code>transcript_digest</code> +
+            <code>witness_ids</code> are Get-able and portable (see
+            <a href="wiki-notary.html">Notary receipts</a>).
+          </li>
+          <li>
+            <strong>Age gate</strong> — stamp observes require ~1h on the
+            roster (<code>MIN_AGE_MS</code>). Fresh Sybil keys cannot seal
+            immediately.
+          </li>
+          <li>
+            <strong>Seal-history reputation</strong> — after a few network
+            seals exist, stamp eligibility and observe
+            <em>weights</em> use how often a key was included vs MAD-dropped
+            at seal (<code>seals_included</code> /
+            <code>seals_outlier</code>). New keys start
+            <em>neutral</em>. Score is
+            <strong>not</strong> “agree with the live pulse median” — that
+            would let a Sybil flood exile honest peers.
+          </li>
+          <li>
+            <strong>Weighted seal median</strong> — among MAD survivors,
+            wall times are weighted by age ramp × reputation (older, cleaner
+            seal history pulls harder).
+          </li>
+          <li>
+            <strong>Signatures</strong> — pulses and observes are ed25519 over
+            fixed domains. Roster identity is the pubkey.
+          </li>
+          <li>
+            <strong>Get is read-only</strong> — reading state does not write
+            pulses or votes.
+          </li>
+        </ul>
+
+        <h2>Where it isn’t</h2>
+        <ul>
+          <li>
+            <strong>Raw public pulse median</strong> — anyone can pulse.
+            A Sybil cloud of fresh keys can yank the client-side median of
+            <code>pulse</code>. Telemetry’s “Median pulse” is that surface:
+            useful telemetry, not a notary.
+          </li>
+          <li>
+            <strong>OTP lab (demo MFA)</strong> — TOTP over a
+            <em>hardened</em> tip (aged + reputation-weighted pulses, min-n,
+            jump hold). Better than raw median, still not production MFA:
+            shared secret must stay secret; young networks fall back to
+            bootstrap; an adversary who can age many keys still matters.
+            See <a href="wiki-otp.html">OTP</a>.
+          </li>
+          <li>
+            <strong>Young / thin networks</strong> — reputation gate waits
+            until a few seals exist; OTP tip bootstraps when too few aged
+            pulses. Example stamps will not seal until ≥5 distinct aged peers
+            observe. Empty <code>sealed_stamps</code> is normal — do not invent
+            a seal from the pulse map.
+          </li>
+          <li>
+            <strong>Device / NTP sync</strong> — Kairos never steers laptop
+            clocks. Apps Get intervals and widen error with local staleness.
+          </li>
+          <li>
+            <strong>Identity = human trust</strong> — keys are auto-minted.
+            Age and seal history are Sybil friction, not KYC or GitForge
+            linkage.
+          </li>
+          <li>
+            <strong>Bounded state</strong> — roster / pulse / seal maps are
+            capped. Floods get pruned; they do not prove honesty of whoever
+            remains.
+          </li>
+        </ul>
+
+        <h2>Reputation (seal history only)</h2>
+        <p>
+          Each roster entry tracks <code>seals_included</code> and
+          <code>seals_outlier</code>. Score is blended toward neutral until
+          there is a short history, then tracks include-rate (0–1000 scale).
+          Once the network has a few seals, keys below a floor cannot observe
+          stamps; surviving observes are weighted into the seal median.
+        </p>
+        <div class="panel">
+          Reputation must stay tied to <strong>past seals</strong>, never to
+          agreement with the live pulse majority. Live-majority reputation is
+          an exile attack.
+        </div>
+
+        <h2>Which surface for which risk</h2>
+        <ul>
+          <li>
+            <strong>Portable “this hash around this interval”</strong> —
+            sealed stamp + receipt. Strongest Kairos claim today.
+          </li>
+          <li>
+            <strong>Continuous lab clock / OTP digits</strong> — hardened
+            pulse tip. Demo-grade; document the limits to users.
+          </li>
+          <li>
+            <strong>Hosting / keep-alive</strong> — pulse freely; do not treat
+            pulse median as notarize truth.
+          </li>
+        </ul>
+
+        <h2>Public goods (when this actually works)</h2>
+        <p>
+          Seals, reputation, and a trustworthy tip only become real once
+          <strong>other Freenet apps and services wire Kairos into their
+          frameworks</strong> — Subscribe / soft-Get the contract, run network
+          duty (pulse, observe open stamps when eligible), and keep the oracle
+          warm while their users are online. People using those apps then
+          contribute to the shared good without a separate “go host Kairos”
+          chore.
+        </p>
+        <p>
+          Freenet does not magically keep unrelated contracts alive. As a
+          network, shared services like this only stay reachable if apps put
+          <strong>time and energy</strong> into maintaining them — reciprocity
+          is client policy, not WASM magic. Kairos should soft-host a small
+          public-goods set in return (see
+          <a href="wiki-hosting.html">Hosting</a> and repo
+          <code>docs/public-goods.md</code>).
+        </p>
+        <div class="panel">
+          Alone, this lab is a demo. Embedded across Freenet apps, it is a
+          shared clock the mesh can actually use.
+        </div>
+
+        <p>
+          Field reference:
+          <a href="schema.html">Schema</a> /
+          <code>SCHEMA.md</code>. Identity mechanics:
+          <a href="wiki-identity.html">Identity &amp; age</a>.
+        </p>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> wiki · trust &amp; security
+    </footer>
+    <script type="module" src="app.js?v=20260730z"></script>
+  </body>
+</html>
