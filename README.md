@@ -23,6 +23,9 @@ lead by example. Honest limits:
 **Website (local gateway):**  
 http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/
 
+**River chat (invite):**  
+http://127.0.0.1:7509/v1/contract/web/raAqMhMG7KUpXBU2SxgCQ3Vh4PYjttxdSWd9ftV7RLv/?invitation=2C4uYXWqtvgFofF3fjeo8irDkgMg41ZQQLdGVXidSEKPHAb81MLVXnEM48cYkXTe876uCKTb9dwExaME9Ng1AufGqVFAXRwfMWpwMDbiqz1LrWBd1PLRCoCsSEQ4coQfhr1ZMGKRLR8YtrPvRhX47N3k8yqZqRHxT8rjUYgKBuvommAR4kpcsrRrDJLC83BWoY4BquZxKDLSFNJH7QQuMc9gXAvwP8BQdg5GdKyxuCCAaRgmMRmXFYvzHGU3ast2f8KDRVSSzFF2hGQieLTHKKfXro8BjA7EJ8n3RtjGKyxVBEeVhH8w4gtVPGH2hVHRcHVz6APXnfZP5vszAf9ggSyC5ZdEwYdEjoBkWLpV4mvE62FUMDF8WKZ32jtJdE5yCkhMHVmpzFREnhY1fYeEHCTDfvCY4kistJ1EVMzkvidKuuxubzuvjLQuQReHdJBir8JhuTcvccCHXRSqf3H2W4gf
+
 ## Why apps should embed this
 
 Seals and a useful tip only appear when **other Freenet apps** Subscribe /
