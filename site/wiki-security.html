@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Trust &amp; security · Wiki · Kairos</title>
-    <link rel="stylesheet" href="styles.css?v=20260730z" />
+    <link rel="stylesheet" href="styles.css?v=20260730aa" />
   </head>
   <body>
     <header class="site-header">
@@ -35,10 +35,10 @@
       <main class="wiki-article prose">
         <h1>Trust &amp; security</h1>
         <p class="lede">
-          Kairos leads by hardening the demo paths, but the threat model is
-          not finished MFA or a Byzantine clock. This page is the honest map:
-          what the contract actually resists, and what still fails under a
-          determined flood.
+          Kairos is the production shared clock — early, still hardening.
+          The threat model is not finished MFA or a Byzantine clock. This page
+          is the honest map: what the contract actually resists, and what still
+          fails under a determined flood.
         </p>
 
         <h2>Where strength is</h2>
@@ -91,9 +91,9 @@
             useful telemetry, not a notary.
           </li>
           <li>
-            <strong>OTP lab (demo MFA)</strong> — TOTP over a
+            <strong>OTP lab (early MFA surface)</strong> — TOTP over a
             <em>hardened</em> tip (aged + reputation-weighted pulses, min-n,
-            jump hold). Better than raw median, still not production MFA:
+            jump hold). Better than raw median, still not finished MFA:
             shared secret must stay secret; young networks fall back to
             bootstrap; an adversary who can age many keys still matters.
             See <a href="wiki-otp.html">OTP</a>.
@@ -143,7 +143,7 @@
           </li>
           <li>
             <strong>Continuous lab clock / OTP digits</strong> — hardened
-            pulse tip. Demo-grade; document the limits to users.
+            pulse tip. Early; document the limits to users.
           </li>
           <li>
             <strong>Hosting / keep-alive</strong> — pulse freely; do not treat
@@ -171,8 +171,9 @@
           <code>docs/public-goods.md</code>).
         </p>
         <div class="panel">
-          Alone, this lab is a demo. Embedded across Freenet apps, it is a
-          shared clock the mesh can actually use.
+          Alone on one tab, the network stays thin. Embedded across Freenet
+          apps (GitForge already runs network duty in the background), Kairos
+          is a shared clock the mesh can actually use — start integrating now.
         </div>
 
         <p>
@@ -187,6 +188,6 @@
     <footer class="site-footer">
       <strong>Kairos</strong> wiki · trust &amp; security
     </footer>
-    <script type="module" src="app.js?v=20260730z"></script>
+    <script type="module" src="app.js?v=20260730aa"></script>
   </body>
 </html>

@@ -1,20 +1,20 @@
 # Kairos
 
-**Active demo / experimental** Freenet time oracle — verifiable *shared*
-wall time for apps on the mesh. Peers pulse signed observations; aged
-witnesses help seal content-hash stamps with a median, error interval, and
-transcript apps can `Get`.
+**Kairos** is the Freenet time oracle — verifiable *shared* wall time for apps
+on the mesh. Peers pulse signed observations; aged witnesses help seal
+content-hash stamps with a median, error interval, and transcript apps can
+`Get`.
 
-Kairos is a **shared Freenet clock**, not laptop NTP. Labs on the site
-(Telemetry, OTP) are intentionally demo-grade in places; we still harden
-what we can (age gates, seal-history reputation, OTP tip jump guard) to
-lead by example. Honest limits:
+This **is** the production app: early and still maturing, not a throwaway
+prototype. Start wiring it into Freenet apps now. Labs on the site
+(Telemetry, OTP) expose live surfaces; some paths (e.g. OTP tip) are still
+hardening. Honest limits:
 [Trust & security](site/wiki-security.html) (also on the published site).
 
 | Piece | Status |
 |-------|--------|
 | Status | **Active** — contract + website published; APIs evolving |
-| Maturity | **Demo / experimental** — useful for Freenet labs & early app wiring |
+| Maturity | **Early / production** — use it; expect the threat model to deepen |
 | `kairos-time` | Published (`kairos-time-v2` params) |
 | `kairos-identity` | Auto-minted ed25519 witness delegate |
 | Website | `fdev` key `kairos` → contract `DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ` |
@@ -31,7 +31,8 @@ http://127.0.0.1:7509/v1/contract/web/raAqMhMG7KUpXBU2SxgCQ3Vh4PYjttxdSWd9ftV7RL
 Seals and a useful tip only appear when **other Freenet apps** Subscribe /
 run network duty so their users contribute pulses and stamp observes as a
 side effect of using those apps. Reciprocity is client policy — Freenet
-does not auto-keep unrelated contracts alive. See
+does not auto-keep unrelated contracts alive. GitForge’s website worker runs
+Kairos network duty in the background for this reason. See
 [`docs/public-goods.md`](docs/public-goods.md) and the wiki **Hosting** /
 **Trust & security** pages.
 

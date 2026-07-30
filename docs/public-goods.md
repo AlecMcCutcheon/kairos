@@ -3,18 +3,20 @@
 Freenet does not auto-keep unrelated contracts alive. Reciprocity is
 **client policy**.
 
-Kairos only becomes broadly useful once other Freenet apps and services
-**embed the API** (Get / Subscribe / network duty) so that people using those
-apps automatically help pulse and observe — contributing to this shared good
-(and peers like it). As a network, that means putting time and energy into
-wiring and maintaining these services inside product frameworks, not only
-opening the Kairos lab tab.
+Kairos is the production shared clock (early maturity). It becomes broadly
+useful once other Freenet apps and services **embed the API** (Get /
+Subscribe / network duty) so people using those apps automatically help
+pulse and observe. As a network, that means putting time and energy into
+wiring these services into product frameworks — not only opening the Kairos
+site.
 
 ## While browsing GitForge
 
-The GitForge SPA should soft-Get / Subscribe (and optionally witness) the
-Kairos time contract whenever the site is open. That enrolls forge visitors
-as hosts/witnesses for verifiable time.
+The GitForge SPA mounts a non-blocking **Kairos duty worker** (delayed
+start; failures never block page load). It soft-Gets / Subscribes the time
+contract and runs network duty (pulse; observe open stamps when
+age-eligible). That enrolls forge visitors as hosts/witnesses for verifiable
+time.
 
 ## While using Kairos directly
 
@@ -31,6 +33,7 @@ Exact keys (current):
 |------|------------|
 | Kairos website | `DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ` (`fdev` name `kairos`) |
 | Time params | `kairos-time-v2` (instance id; see `SCHEMA.md`) |
+| Time WASM hash | `4PWZzjjmTGxBwzKYwtL2wtMTLmkRywyeHArBauQds42F` |
 
 ## What WASM cannot do
 
