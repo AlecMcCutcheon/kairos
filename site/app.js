@@ -381,7 +381,31 @@ const DEMO_SEQ_KEY = "kairos.demo.seq.v3";
 const AUTH_CLOCK_KEY = "kairos.otp.auth-clock.v3";
 const AUTH_SESSION_KEY = "kairos.otp.auth-session.v3";
 /** Bump to defeat Freenet / browser module cache. */
-export const KAIROS_ASSET_V = "20260730ab";
+export const KAIROS_ASSET_V = "20260730ac";
+
+/**
+ * Outer Freenet gateway shell hardcodes `<title>Freenet</title>`. Setting
+ * `document.title` alone only updates the sandboxed iframe. Push titles via
+ * the same bridge GitForge uses: `{ __freenet_shell__: true, type: "title" }`.
+ */
+export function sendTitleToFreenetShell(title) {
+  const next = String(title || "Kairos").slice(0, 128);
+  try {
+    document.title = next;
+  } catch {
+    /* */
+  }
+  try {
+    if (typeof window !== "undefined" && window.parent && window.parent !== window) {
+      window.parent.postMessage(
+        { __freenet_shell__: true, type: "title", title: next },
+        "*",
+      );
+    }
+  } catch {
+    /* */
+  }
+}
 
 /** How fast local age widens seal error after Get (Byztime-style). */
 export const OTP_STALE_GROWTH = 0.35;
@@ -1651,6 +1675,8 @@ export async function softNavigate(href, push = true) {
     curFooter.replaceWith(document.importNode(newFooter, true));
   }
   document.title = doc.title || document.title;
+  // NEW CODE - TESTING: sync Freenet shell tab title (not just iframe)
+  sendTitleToFreenetShell(doc.title || document.title || "Kairos");
   if (push) {
     history.pushState({ kairos: page }, "", page);
   }
@@ -1707,6 +1733,8 @@ export function bootKairosSite() {
   markCurrentNav();
   // OLD CODE - KEEP UNTIL CONFIRMED WORKING
   // ensureDemoOracleRunning();
+  // NEW CODE - TESTING: replace outer shell "Freenet" with this page's title
+  sendTitleToFreenetShell(document.title || "Kairos");
   mountSiteOracleChrome();
   installSoftNav();
   const page = pageNameFromHref(location.pathname);
