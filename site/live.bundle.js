@@ -14,7 +14,7 @@ function Li(r, i) {
   }
   return Object.freeze(Object.defineProperty(r, Symbol.toStringTag, { value: "Module" }));
 }
-const Wo = "kairos-time-v2", Tn = "4PWZzjjmTGxBwzKYwtL2wtMTLmkRywyeHArBauQds42F", zs = "./public/kairos_time.wasm";
+const Wo = "kairos-time-v2", Tn = "9mW5W6i2873t1Zr4EPtVBHi7kjjTFhyeUfyC5CWNEHP", zs = "./public/kairos_time.wasm";
 /*! noble-hashes - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 function zo(r) {
   return r instanceof Uint8Array || ArrayBuffer.isView(r) && r.constructor.name === "Uint8Array";
@@ -9301,7 +9301,7 @@ const ls = JSON.stringify({
   pulse: {},
   open_stamps: {},
   sealed_stamps: {}
-}), be = 36e5, Xn = 500, Su = 300, Zn = 10, Pu = 3, Ai = 168 * 36e5, Iu = 1, qi = 9e4;
+}), be = 36e5, Xn = 500, Su = 300, Zn = 10, Pu = 3, Ai = 168 * 36e5, Iu = 1, qi = 9e4, Cu = 15 * 6e4;
 function fs(r) {
   if (!r?.length)
     return JSON.parse(ls);
@@ -9356,7 +9356,7 @@ async function ao(r) {
   const u = new TextEncoder().encode(JSON.stringify({ pulse: c }));
   return await qs(Us(i, u), i), c;
 }
-async function Cu(r, i, l) {
+async function Uu(r, i, l) {
   const { key: f } = await ye(l), c = new TextEncoder().encode(
     JSON.stringify({
       open_stamp: { content_hash: r, nonce: i }
@@ -9364,7 +9364,7 @@ async function Cu(r, i, l) {
   );
   return l?.("Opening stamp request…"), await qs(Us(f, c), f), `${r}:${i}`;
 }
-async function Uu(r, i) {
+async function Au(r, i) {
   const { key: l } = await ye(i);
   await sn(i);
   const f = Date.now(), c = typeof performance < "u" ? Math.floor(performance.now()) : 0, u = await Du(r, {
@@ -9380,8 +9380,13 @@ async function Uu(r, i) {
   );
   return await qs(Us(l, o), l), u;
 }
-function Au(r) {
-  const i = Object.values(r.pulse || {}), l = Object.values(r.roster || {}), f = l.filter(
+function qu(r) {
+  let i = Object.values(r.pulse || {});
+  if (i.length) {
+    const s = Math.max(...i.map((a) => a.wall_ms)) - Cu;
+    i = i.filter((a) => a.wall_ms >= s);
+  }
+  const l = Object.values(r.roster || {}), f = l.filter(
     (e) => e.last_seen_ms - e.first_seen_ms >= be
   ).length;
   if (!i.length)
@@ -9422,14 +9427,14 @@ function oo(r) {
   const c = Math.floor(i * 1e3 / f), u = Math.min(f, Zn);
   return Math.floor((c * u + Xn * (Zn - u)) / Zn);
 }
-function qu(r, i) {
+function Mu(r, i) {
   if (!r) return 0;
   const l = i - r.first_seen_ms;
   if (l < be) return 0;
   const f = Math.max(1, oo(r)), c = Math.min(Math.max(0, l - be), Ai), u = 1e3 + Math.floor(c * 3e3 / Math.max(Ai, 1));
   return Math.min(64, Math.max(1, Math.floor(f * u / 1e5)));
 }
-function Mu(r) {
+function Eu(r) {
   if (!r.length) return null;
   const i = [...r].sort((u, o) => u.wall - o.wall), l = i.reduce((u, o) => u + o.weight, 0);
   if (!l) return i[Math.floor(i.length / 2)].wall;
@@ -9439,13 +9444,13 @@ function Mu(r) {
     if (c += u.weight, c >= f) return u.wall;
   return i[i.length - 1].wall;
 }
-function Eu(r) {
+function Nu(r) {
   const i = r.roster || {}, l = Object.keys(r.sealed_stamps || {}).length, f = Object.values(r.pulse || {}), c = [];
   for (const d of f) {
     const _ = i[d.node_id];
     if (!_ || d.wall_ms - _.first_seen_ms < be || l >= Pu && oo(_) < Su)
       continue;
-    const v = qu(_, d.wall_ms);
+    const v = Mu(_, d.wall_ms);
     v > 0 && c.push({ wall: d.wall_ms, weight: v, unc: d.uncertainty_ms, o: d });
   }
   let u = c, o = "aged";
@@ -9463,7 +9468,7 @@ function Eu(r) {
       trusted_mode: o,
       sealed_count: l
     };
-  const n = Mu(u.map((d) => ({ wall: d.wall, weight: d.weight }))), t = u.map((d) => d.wall).sort((d, _) => d - _), e = Je(
+  const n = Eu(u.map((d) => ({ wall: d.wall, weight: d.weight }))), t = u.map((d) => d.wall).sort((d, _) => d - _), e = Je(
     t.map((d) => Math.abs(d - n)).sort((d, _) => d - _)
   ), s = Je(u.map((d) => d.unc).sort((d, _) => d - _));
   let a = Math.max(s, Math.round(1.4826 * e), 1);
@@ -9483,12 +9488,12 @@ function Je(r) {
   const i = Math.floor(r.length / 2);
   return r.length % 2 ? r[i] : Math.round((r[i - 1] + r[i]) / 2);
 }
-const Rn = 5, Nu = 5, Lu = 8e3, co = "kairos.public.example.v1", uo = "v1", xt = `${co}:${uo}`;
-async function Vu(r, i) {
-  return r?.sealed_stamps?.[xt] || r?.open_stamps?.[xt] ? { opened: !1, request_id: xt } : (i?.("Opening public example stamp…"), await Cu(co, uo, i), { opened: !0, request_id: xt });
+const Rn = 5, Lu = 5, Vu = 8e3, co = "kairos.public.example.v1", uo = "v1", xt = `${co}:${uo}`;
+async function Fu(r, i) {
+  return r?.sealed_stamps?.[xt] || r?.open_stamps?.[xt] ? { opened: !1, request_id: xt } : (i?.("Opening public example stamp…"), await Uu(co, uo, i), { opened: !0, request_id: xt });
 }
 function ds(r, i, l = {}) {
-  const f = i?.nodeId || null, c = f ? r.roster?.[f] : null, u = c ? c.last_seen_ms - c.first_seen_ms : 0, o = !!(c && u >= be), n = Object.entries(r.open_stamps || {}), t = l.maxObserve ?? Nu, e = o ? n.filter(([, d]) => !d.observations?.[f]).map(([d]) => d).slice(0, t) : [], s = [];
+  const f = i?.nodeId || null, c = f ? r.roster?.[f] : null, u = c ? c.last_seen_ms - c.first_seen_ms : 0, o = !!(c && u >= be), n = Object.entries(r.open_stamps || {}), t = l.maxObserve ?? Lu, e = o ? n.filter(([, d]) => !d.observations?.[f]).map(([d]) => d).slice(0, t) : [], s = [];
   l.pulse !== !1 && s.push({
     type: "pulse",
     reason: c ? "keep-alive + accrue roster age" : "join roster + keep-alive"
@@ -9513,7 +9518,7 @@ function ds(r, i, l = {}) {
     summary: a
   };
 }
-async function Fu(r, i = {}) {
+async function Bu(r, i = {}) {
   await ye(r);
   const l = await io(r), f = await qe();
   return {
@@ -9522,13 +9527,13 @@ async function Fu(r, i = {}) {
     plan: ds(f, l, i)
   };
 }
-async function Bu(r, i = {}) {
+async function Hu(r, i = {}) {
   await ye(r);
   const l = await io(r);
   let f = await qe(), c = { opened: !1, request_id: xt };
   if (i.ensureExample !== !1)
     try {
-      c = await Vu(f, r), c.opened && (f = await qe());
+      c = await Fu(f, r), c.opened && (f = await qe());
     } catch (n) {
       c = {
         opened: !1,
@@ -9547,7 +9552,7 @@ async function Bu(r, i = {}) {
   };
   for (const n of u.actions)
     try {
-      n.type === "pulse" ? (r?.(u.summary), await ao(r), o.pulsed = !0) : n.type === "observe_stamp" && n.request_id && (r?.(`Observing ${n.request_id}…`), await Uu(n.request_id, r), o.observed.push(n.request_id));
+      n.type === "pulse" ? (r?.(u.summary), await ao(r), o.pulsed = !0) : n.type === "observe_stamp" && n.request_id && (r?.(`Observing ${n.request_id}…`), await Au(n.request_id, r), o.observed.push(n.request_id));
     } catch (t) {
       o.errors.push({
         action: n,
@@ -9559,12 +9564,12 @@ async function Bu(r, i = {}) {
     pulse: !1
   }), o;
 }
-function Hu(r = {}) {
+function Ku(r = {}) {
   const {
     onDuty: i,
     onStatus: l,
     onError: f,
-    intervalMs: c = Lu,
+    intervalMs: c = Vu,
     runOnUpdate: u = !0
   } = r;
   let o = !1, n = !1, t = null, e = () => {
@@ -9579,7 +9584,7 @@ function Hu(r = {}) {
       try {
         let _;
         if (d === "update" || d === "queued-update") {
-          const g = await Fu((v) => l?.(v, d));
+          const g = await Bu((v) => l?.(v, d));
           _ = {
             identity: g.identity,
             plan: g.plan,
@@ -9591,7 +9596,7 @@ function Hu(r = {}) {
             plan_after: g.plan
           };
         } else
-          _ = await Bu((g) => l?.(g, d));
+          _ = await Hu((g) => l?.(g, d));
         o || i?.(_, d);
       } catch (_) {
         o || f?.(_);
@@ -9625,7 +9630,7 @@ function Mi(r) {
 function lo(r, i = {}) {
   const l = Object.entries(r.sealed_stamps || {}).sort(
     (n, t) => (t[1].sealed_at_ms ?? t[1].median_wall_ms ?? 0) - (n[1].sealed_at_ms ?? n[1].median_wall_ms ?? 0)
-  ), f = Eu(r), c = Date.now(), u = l.length, o = i.prev || null;
+  ), f = Nu(r), c = Date.now(), u = l.length, o = i.prev || null;
   if (f.median_wall_ms != null) {
     let n = f.median_wall_ms, t = !1, e = f.confidence_ms ?? 80;
     o?.otp_time_ms != null && Math.abs(n - o.otp_time_ms) > qi && (n = o.otp_time_ms, t = !0, e = Math.max(e, qi));
@@ -9685,12 +9690,12 @@ function lo(r, i = {}) {
     "No pulse map yet — stay on this page (site duty will pulse) or open Telemetry."
   );
 }
-async function zu(r, i = {}) {
+async function Xu(r, i = {}) {
   await ye(r), i.pulse === !0 && (r?.("Pulsing keep-alive…"), await ao(r).catch(() => null)), r?.("Getting Kairos contract…");
   const l = await qe();
   return lo(l, { prev: i.prev || null });
 }
-function Xu(r = {}) {
+function Zu(r = {}) {
   const { onClock: i, onStatus: l, onError: f } = r;
   let c = !1, u = !1, o = !1, n = () => {
   }, t = null;
@@ -9732,10 +9737,10 @@ function Xu(r = {}) {
 function Gs(r) {
   return new Date(r).toISOString();
 }
-function Ku(r) {
+function ku(r) {
   return r == null ? "—" : r < 1e3 ? `±${r} ms` : `±${(r / 1e3).toFixed(2)} s`;
 }
-function ku(r) {
+function Gu(r) {
   return r < 6e4 ? `${Math.round(r / 1e3)}s` : r < 36e5 ? `${Math.round(r / 6e4)}m` : r < 864e5 ? `${(r / 36e5).toFixed(1)}h` : `${(r / 864e5).toFixed(1)}d`;
 }
 function ke(r) {
@@ -9747,7 +9752,7 @@ function fo(r) {
     return (l[1]?.sealed_at_ms ?? l[1]?.median_wall_ms ?? 0) - f;
   });
 }
-function Gu(r, i, l) {
+function xu(r, i, l) {
   if (!i) return;
   const f = fo(r).slice(0, 12);
   if (!f.length) {
@@ -9789,7 +9794,7 @@ function Gu(r, i, l) {
       <tbody>${c.join("")}</tbody>
     </table>`;
 }
-function xu(r, i, l, f = null) {
+function $u(r, i, l, f = null) {
   if (!i || !l) return;
   const c = r.sealed_stamps || {}, u = r.open_stamps || {}, o = Object.entries(u), n = fo(r), t = u[xt], s = c[xt] ? "example sealed" : t ? `example open ${Object.keys(t.observations || {}).length}/${Rn}` : "example missing";
   i.innerHTML = `
@@ -9830,10 +9835,10 @@ function Ei(r) {
   if (!i?.state) return;
   const l = document.getElementById("mode-pill"), f = document.getElementById("identity-status"), c = document.getElementById("live-status"), u = document.getElementById("metrics"), o = document.getElementById("witnesses"), n = document.getElementById("sealed-metrics"), t = document.getElementById("sealed-list"), e = document.getElementById("seal-witnesses");
   if (!u || !o) return;
-  const s = i.state, a = i.identity, d = Au(s), _ = i.plan?.summary || "—";
+  const s = i.state, a = i.identity, d = qu(s), _ = i.plan?.summary || "—";
   c && (i.errors?.length ? (c.hidden = !1, c.textContent = i.errors.map((w) => w.error).join("; ")) : (c.hidden = !0, c.textContent = "")), l && (l.textContent = "Live Freenet · duty", l.classList.add("live-pill")), f && a && (f.textContent = `${a.label} · via ${a.backend} · ${_}`), u.innerHTML = `
     <div class="metric"><span class="label">Median pulse</span><span class="value small">${d.median_wall_ms != null ? Gs(d.median_wall_ms) : "—"}</span></div>
-    <div class="metric"><span class="label">Pulse spread</span><span class="value">${Ku(d.confidence_ms)}</span></div>
+    <div class="metric"><span class="label">Pulse spread</span><span class="value">${ku(d.confidence_ms)}</span></div>
     <div class="metric"><span class="label">Live pulses</span><span class="value">${d.witness_count}</span></div>
     <div class="metric"><span class="label">Roster / eligible</span><span class="value small">${d.roster_count} / ${d.eligible_count}</span></div>
     <div class="metric"><span class="label">Sealed stamps</span><span class="value">${d.sealed_count}</span></div>
@@ -9844,7 +9849,7 @@ function Ei(r) {
     1
   );
   o.innerHTML = d.observations.length ? d.observations.map((w) => {
-    const p = Math.abs(w.wall_ms - g), D = Math.max(8, 100 - p / v * 100), O = s.roster?.[w.node_id], R = O ? ku(O.last_seen_ms - O.first_seen_ms) : "?", S = O && O.last_seen_ms - O.first_seen_ms >= be ? "✓" : "·", U = a && w.node_id === a.nodeId ? " (you)" : "", A = eo(w.node_id), q = `${w.node_id.slice(0, 12)}…`;
+    const p = Math.abs(w.wall_ms - g), D = Math.max(8, 100 - p / v * 100), O = s.roster?.[w.node_id], R = O ? Gu(O.last_seen_ms - O.first_seen_ms) : "?", S = O && O.last_seen_ms - O.first_seen_ms >= be ? "✓" : "·", U = a && w.node_id === a.nodeId ? " (you)" : "", A = eo(w.node_id), q = `${w.node_id.slice(0, 12)}…`;
     return `<li>
             <div class="witness-id">
               <span class="witness-label">${A}${U}</span>
@@ -9853,7 +9858,7 @@ function Ei(r) {
             <span class="bar" title="drift ${p} ms"><i style="width:${D}%"></i></span>
             <span class="witness-meta">${S} age ${R} · Δ${p}ms</span>
           </li>`;
-  }).join("") : '<li><span class="id">none yet</span><span></span><span>waiting for pulses</span></li>', xu(s, n, t, _), Gu(s, e, a);
+  }).join("") : '<li><span class="id">none yet</span><span></span><span>waiting for pulses</span></li>', $u(s, n, t, _), xu(s, e, a);
 }
 function Ni(r) {
   r?.addEventListener("click", (i) => {
@@ -9874,7 +9879,7 @@ function Ni(r) {
     );
   });
 }
-function $u() {
+function Wu() {
   const r = document.getElementById("mode-pill"), i = document.getElementById("witnesses"), l = document.getElementById("seal-witnesses");
   r && (r.textContent = "Waiting for site duty…");
   const f = (c) => {
@@ -9884,8 +9889,8 @@ function $u() {
     window.removeEventListener("kairos-duty", f);
   };
 }
-function Zu() {
-  return globalThis.__kairosSiteDutyStop || (globalThis.__kairosSiteDutyStop = Hu({
+function Yu() {
+  return globalThis.__kairosSiteDutyStop || (globalThis.__kairosSiteDutyStop = Ku({
     onDuty: (r, i) => {
       const l = { result: r, reason: i };
       globalThis.__kairosLastDuty = l, globalThis.dispatchEvent(
@@ -9901,8 +9906,8 @@ function Zu() {
     }
   })), globalThis.__kairosSiteDutyStop;
 }
-function Yu() {
-  return $u();
+function Ju() {
+  return Wu();
 }
 export {
   co as EXAMPLE_STAMP_CONTENT_HASH,
@@ -9910,22 +9915,22 @@ export {
   uo as EXAMPLE_STAMP_NONCE,
   Rn as MIN_STAMP_WITNESSES,
   lo as clockFromKairosState,
-  Vu as ensureExampleStamp,
+  Fu as ensureExampleStamp,
   ye as ensureKairosExists,
-  Zu as ensureSiteNetworkDuty,
+  Yu as ensureSiteNetworkDuty,
   qe as fetchKairosState,
-  zu as fetchOtpNetworkClock,
+  Xu as fetchOtpNetworkClock,
   io as getKairosIdentitySummary,
-  Yu as mountTelemetryPage,
-  Uu as observeStamp,
+  Ju as mountTelemetryPage,
+  Au as observeStamp,
   La as onContractUpdate,
-  Cu as openStamp,
+  Uu as openStamp,
   ds as planNetworkDuty,
-  Au as pulseStats,
-  Fu as queryNetworkDuty,
-  Bu as runNetworkDuty,
+  qu as pulseStats,
+  Bu as queryNetworkDuty,
+  Hu as runNetworkDuty,
   ao as submitPulse,
-  Hu as watchNetworkDuty,
-  Xu as watchOtpNetworkClock
+  Ku as watchNetworkDuty,
+  Zu as watchOtpNetworkClock
 };
 //# sourceMappingURL=live.bundle.js.map

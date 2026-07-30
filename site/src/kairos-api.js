@@ -35,6 +35,8 @@ const AGE_RAMP_MS = 7 * 24 * 3_600_000;
 const MIN_OTP_TRUSTED = 1;
 /** Ignore tip jumps larger than this vs last accepted tip (3×30s bins). */
 export const OTP_MAX_TIP_JUMP_MS = 90_000;
+/** Telemetry/OTP: ignore pulse rows this far behind the freshest wall_ms. */
+const MAX_PULSE_STALE_MS = 15 * 60_000;
 
 export function parseKairosState(bytes) {
   if (!bytes?.length) {
@@ -154,7 +156,15 @@ export async function observeStamp(requestId, onStatus) {
 }
 
 export function pulseStats(state) {
-  const obs = Object.values(state.pulse || {});
+  // OLD CODE - KEEP UNTIL CONFIRMED WORKING
+  // const obs = Object.values(state.pulse || {});
+  // NEW CODE - TESTING: hide abandoned/churned keys with stale wall_ms
+  let obs = Object.values(state.pulse || {});
+  if (obs.length) {
+    const newest = Math.max(...obs.map((o) => o.wall_ms));
+    const cutoff = newest - MAX_PULSE_STALE_MS;
+    obs = obs.filter((o) => o.wall_ms >= cutoff);
+  }
   const roster = Object.values(state.roster || {});
   const eligible = roster.filter(
     (e) => e.last_seen_ms - e.first_seen_ms >= MIN_AGE_MS,

@@ -381,7 +381,7 @@ const DEMO_SEQ_KEY = "kairos.demo.seq.v3";
 const AUTH_CLOCK_KEY = "kairos.otp.auth-clock.v3";
 const AUTH_SESSION_KEY = "kairos.otp.auth-session.v3";
 /** Bump to defeat Freenet / browser module cache. */
-export const KAIROS_ASSET_V = "20260730x";
+export const KAIROS_ASSET_V = "20260730ab";
 
 /** How fast local age widens seal error after Get (Byztime-style). */
 export const OTP_STALE_GROWTH = 0.35;

@@ -33,7 +33,7 @@ Exact keys (current):
 |------|------------|
 | Kairos website | `DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ` (`fdev` name `kairos`) |
 | Time params | `kairos-time-v2` (instance id; see `SCHEMA.md`) |
-| Time WASM hash | `4PWZzjjmTGxBwzKYwtL2wtMTLmkRywyeHArBauQds42F` |
+| Time WASM hash | `9mW5W6i2873t1Zr4EPtVBHi7kjjTFhyeUfyC5CWNEHP` |
 
 ## What WASM cannot do
 

@@ -33,6 +33,9 @@ const AGE_RAMP_MS: u64 = 7 * 24 * 3_600_000;
 /// cannot grow without limit.
 const MAX_ROSTER: usize = 4_096;
 const MAX_PULSE: usize = 1_024;
+/// Drop pulse-map rows older than this vs the newest wall_ms (stale orphans
+/// from witness-key churn / abandoned tabs). Roster age is unaffected.
+const MAX_PULSE_STALE_MS: u64 = 15 * 60_000;
 const MAX_OPEN_STAMPS: usize = 256;
 const MAX_SEALED_STAMPS: usize = 1_024;
 const MAX_OBS_PER_STAMP: usize = 512;
@@ -464,6 +467,21 @@ fn prune_roster(state: &mut KairosState) {
 }
 
 fn prune_pulse(state: &mut KairosState) {
+    // OLD CODE - KEEP UNTIL CONFIRMED WORKING
+    // while state.pulse.len() > MAX_PULSE { drop oldest by wall_ms }
+    // NEW CODE - TESTING: also drop rows far behind the freshest pulse tip
+    if let Some(newest) = state.pulse.values().map(|o| o.wall_ms).max() {
+        let cutoff = newest.saturating_sub(MAX_PULSE_STALE_MS);
+        let stale: Vec<String> = state
+            .pulse
+            .iter()
+            .filter(|(_, o)| o.wall_ms < cutoff)
+            .map(|(k, _)| k.clone())
+            .collect();
+        for k in stale {
+            state.pulse.remove(&k);
+        }
+    }
     while state.pulse.len() > MAX_PULSE {
         let victim = state
             .pulse
