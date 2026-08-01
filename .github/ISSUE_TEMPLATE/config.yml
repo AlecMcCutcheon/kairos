@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Freenet core (node) issues
+    url: https://github.com/freenet/freenet-core/issues
+    about: Bugs or features that belong in freenet-core itself, not the Kairos app.
+  - name: Contributing guide
+    url: https://github.com/AlecMcCutcheon/kairos/blob/main/CONTRIBUTING.md
+    about: Issue-first policy for features and design changes.
