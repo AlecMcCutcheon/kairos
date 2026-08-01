@@ -1,5 +1,11 @@
 # Public-goods hosting (Kairos ↔ GitForge)
 
+Kairos publishes the versioned `freenet.public-good.v1` manifest from its live
+bundle. The manifest describes `pulse` and `observe_stamp` capabilities while
+keeping the Kairos identity delegate and private key service-owned. `GetIdentity`
+is read-only; the foreground initialization operation is `EnsureIdentity`, and
+background duty never calls it.
+
 Freenet does not auto-keep unrelated contracts alive. Reciprocity is
 **client policy**.
 

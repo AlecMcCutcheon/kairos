@@ -381,7 +381,10 @@ const DEMO_SEQ_KEY = "kairos.demo.seq.v3";
 const AUTH_CLOCK_KEY = "kairos.otp.auth-clock.v3";
 const AUTH_SESSION_KEY = "kairos.otp.auth-session.v3";
 /** Bump to defeat Freenet / browser module cache. */
-export const KAIROS_ASSET_V = "20260730ac";
+// OLD CODE - KEEP UNTIL CONFIRMED WORKING
+// export const KAIROS_ASSET_V = "20260730ac";
+// NEW CODE - TESTING: sticky pulse hide + stable witness list order
+export const KAIROS_ASSET_V = "20260731ar";
 
 /**
  * Outer Freenet gateway shell hardcodes `<title>Freenet</title>`. Setting
@@ -404,6 +407,34 @@ export function sendTitleToFreenetShell(title) {
     }
   } catch {
     /* */
+  }
+}
+
+/** Push the shared SVG into Freenet's outer tab chrome when embedded. */
+export async function sendFaviconToFreenetShell() {
+  try {
+    if (
+      typeof window === "undefined" ||
+      !window.parent ||
+      window.parent === window
+    ) {
+      return;
+    }
+    const response = await fetch(`kairos-hourglass.svg?v=${KAIROS_ASSET_V}`, {
+      cache: "no-cache",
+    });
+    if (!response.ok) return;
+    const svg = await response.text();
+    window.parent.postMessage(
+      {
+        __freenet_shell__: true,
+        type: "favicon",
+        href: `data:image/svg+xml,${encodeURIComponent(svg)}`,
+      },
+      "*",
+    );
+  } catch {
+    // The page-level favicon still works in a normal browser tab.
   }
 }
 
@@ -1363,6 +1394,9 @@ export function adoptAuthClock(oracle, meta = {}) {
     sequence: oracle.sequence,
     sealed_at_ms: oracle.sealed_at_ms,
     otp_time_ms: oracle.otp_time_ms,
+    measured_median_ms: oracle.measured_median_ms ?? null,
+    got_at_ms: oracle.got_at_ms ?? now,
+    slew_ms: oracle.slew_ms ?? 0,
     request_id: oracle.request_id,
     tip: oracle.tip ?? null,
     source: oracle.source ?? oracle.stamp?.source ?? null,
@@ -1605,13 +1639,13 @@ export async function syncOtpSession(secretB32) {
 
 export function markCurrentNav() {
   const path = location.pathname.split("/").pop() || "index.html";
-  const onWiki = path === "wiki.html" || path.startsWith("wiki-");
+  const onWiki = path === "wiki" || path.startsWith("wiki-");
   document.querySelectorAll(".nav a").forEach((a) => {
     const href = a.getAttribute("href") || "";
     if (
       href === path ||
-      (path === "" && href === "index.html") ||
-      (onWiki && href === "wiki.html")
+      (path === "index.html" && (href === "./" || href === "index.html")) ||
+      (onWiki && href === "wiki")
     ) {
       a.setAttribute("aria-current", "page");
     } else {
@@ -1642,7 +1676,13 @@ function pageNameFromHref(href) {
  */
 export async function softNavigate(href, push = true) {
   const page = pageNameFromHref(href);
-  const url = new URL(page, location.href);
+  // Pages live at <page>/index.html inside the contract; fetch the real file
+  // (extensionless <page> is a directory the raw-file handler cannot open).
+  const rel =
+    page === "index.html" || page.endsWith(".html")
+      ? page
+      : `${page}/index.html`;
+  const url = new URL(rel, location.href);
   let html;
   try {
     const res = await fetch(url.href, { cache: "no-cache" });
@@ -1675,8 +1715,9 @@ export async function softNavigate(href, push = true) {
     curFooter.replaceWith(document.importNode(newFooter, true));
   }
   document.title = doc.title || document.title;
-  // NEW CODE - TESTING: sync Freenet shell tab title (not just iframe)
+  // Sync Freenet shell title and favicon (not just the embedded document).
   sendTitleToFreenetShell(doc.title || document.title || "Kairos");
+  void sendFaviconToFreenetShell();
   if (push) {
     history.pushState({ kairos: page }, "", page);
   }
@@ -1690,12 +1731,12 @@ export async function softNavigate(href, push = true) {
 async function mountPageScript(page) {
   const v = KAIROS_ASSET_V;
   // OLD CODE - KEEP UNTIL CONFIRMED WORKING
-  // if (page === "demo.html") { … mountDemoPage … }
-  if (page === "otp.html") {
+  // if (page === "demo") { … mountDemoPage … }
+  if (page === "otp") {
     const { mountOtpPage } = await import(`./pages/otp-page.js?v=${v}`);
     return mountOtpPage();
   }
-  if (page === "telemetry.html") {
+  if (page === "telemetry") {
     const live = await import(`./live.bundle.js?v=${v}`);
     return live.mountTelemetryPage?.() ?? null;
   }
@@ -1733,8 +1774,9 @@ export function bootKairosSite() {
   markCurrentNav();
   // OLD CODE - KEEP UNTIL CONFIRMED WORKING
   // ensureDemoOracleRunning();
-  // NEW CODE - TESTING: replace outer shell "Freenet" with this page's title
+  // Replace outer shell "Freenet" with this page's title and icon.
   sendTitleToFreenetShell(document.title || "Kairos");
+  void sendFaviconToFreenetShell();
   mountSiteOracleChrome();
   installSoftNav();
   const page = pageNameFromHref(location.pathname);
@@ -1744,7 +1786,7 @@ export function bootKairosSite() {
   // NEW CODE - TESTING: duty runs site-wide (pulse + example stamp + observe)
   void import(`./live.bundle.js?v=${KAIROS_ASSET_V}`)
     .then((live) => {
-      live.ensureSiteNetworkDuty?.();
+      live.ensureSiteDualDuty?.();
     })
     .catch((err) => {
       console.warn("[kairos] site duty failed to start:", err);

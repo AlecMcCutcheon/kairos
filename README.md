@@ -18,7 +18,7 @@ hardening. Honest limits:
 | `kairos-time` | Published (`kairos-time-v2` params) |
 | `kairos-identity` | Auto-minted ed25519 witness delegate |
 | Website | `fdev` key `kairos` → contract `DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ` |
-| OTP / Telemetry | Live Freenet labs (site-wide network duty) |
+| OTP / Telemetry | Live Freenet labs (site-wide dual public-good duty) |
 
 **Website (local gateway):**  
 http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/
@@ -32,7 +32,9 @@ Seals and a useful tip only appear when **other Freenet apps** Subscribe /
 run network duty so their users contribute pulses and stamp observes as a
 side effect of using those apps. Reciprocity is client policy — Freenet
 does not auto-keep unrelated contracts alive. GitForge’s website worker runs
-Kairos network duty in the background for this reason. See
+Kairos network duty in the background for this reason. The Kairos site also
+soft-hosts Tyche with a separate identity and bounded watcher; Tyche’s site
+mirrors that arrangement for Kairos. See
 [`docs/public-goods.md`](docs/public-goods.md) and the wiki **Hosting** /
 **Trust & security** pages.
 

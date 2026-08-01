@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <link rel="shortcut icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Schema · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260731ar" />
+
+    <!-- SEO-BEGIN -->
+    <meta name="description" content="Read the Kairos draft contract schema: signed observations, quorum, median and MAD filtering, confidence intervals, and auditable transcripts." />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0c2218" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Kairos · verifiable time for Freenet" />
+    <meta property="og:title" content="Schema · Kairos" />
+    <meta property="og:description" content="Read the Kairos draft contract schema: signed observations, quorum, median and MAD filtering, confidence intervals, and auditable transcripts." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Schema · Kairos" />
+    <meta name="twitter:description" content="Read the Kairos draft contract schema: signed observations, quorum, median and MAD filtering, confidence intervals, and auditable transcripts." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","name":"Schema · Kairos","description":"Read the Kairos draft contract schema: signed observations, quorum, median and MAD filtering, confidence intervals, and auditable transcripts.","isPartOf":{"@type":"WebSite","name":"Kairos · verifiable time for Freenet"},"headline":"Schema · Kairos"}</script>
+    <!-- Canonical, og:url, og:image, and Twitter image are intentionally omitted until this site has a stable public origin; the current Freenet gateway URL is node-local. -->
+    <!-- SEO-END -->
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./"><img class="brand-mark" src="kairos-hourglass.svg?v=20260731ar" alt="" aria-hidden="true" /> <span class="brand-name">Kairos</span><span class="brand-suffix">time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="./">Home</a>
+        <a href="telemetry">Telemetry</a>
+        <a href="wiki">Wiki</a>
+        <a href="use-cases">Use cases</a>
+        <a href="otp">OTP</a>
+        <a href="schema">Schema</a>
+      </nav>
+    </header>
+
+    <main class="section prose">
+      <h1>Contract schema (draft)</h1>
+      <p class="lede">
+        Peers submit signed observations. After quorum, the contract seals an
+        immutable stamp for a request hash.
+      </p>
+
+      <h2>Parameters</h2>
+      <pre class="secret-box" style="color: var(--muted); font-size: 0.85rem">{
+"schema": "kairos-time-v1",
+"min_witnesses": 7,
+"quorum_numerator": 2,
+"quorum_denominator": 3,
+"max_observation_age_ms": 120000,
+"trim_fraction": 0.2
+      </pre>
+
+      <h2>Observation</h2>
+      <ul>
+        <li><code>node_id</code>, <code>wall_ms</code>, <code>monotonic_ms</code>, <code>uncertainty_ms</code>, <code>signature</code></li>
+        <li>One observation per node per open request (latest wins)</li>
+        <li>Reject absurd uncertainty (&gt; 5s)</li>
+      </ul>
+
+      <h2>Seal</h2>
+      <ol>
+        <li>Sort wall times; drop trim_fraction tails</li>
+        <li>Median + MAD; drop points beyond 5×MAD</li>
+        <li><code>confidence_ms = error_ms = max(median(uncertainty), 1.4826×MAD, 1)</code></li>
+        <li><code>earliest_ms / latest_ms = median ± error</code></li>
+        <li><code>transcript_digest</code> binds sorted witness lines (accountability)</li>
+        <li>Freeze stamp under the request id</li>
+      </ol>
+
+      <p>
+        Full draft with JSON shapes:
+        <span class="mono">SCHEMA.md</span> and
+        <span class="mono">docs/dependable-time.md</span> in the Kairos repo
+        (not always shipped inside the website contract).
+      </p>
+    </main>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> · schema draft v1
+    </footer>
+    <script type="module" src="app.js?v=20260731ar"></script>
+  </body>
+</html>

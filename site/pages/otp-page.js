@@ -8,11 +8,12 @@ import {
   readAuthClock,
   readAuthSession,
   writeAuthSession,
-} from "../app.js?v=20260730v";
+  OTP_BIN_MS,
+} from "../app.js?v=20260731ar";
 import {
   fetchOtpNetworkClock,
   watchOtpNetworkClock,
-} from "../live.bundle.js?v=20260730v";
+} from "../live.bundle.js?v=20260731ar";
 
 /**
  * OTP lab — Freenet Kairos subscribe (UpdateNotification) for authenticator tip;
@@ -39,6 +40,7 @@ export function mountOtpPage() {
   const tickBar = document.getElementById("tick-bar");
   const forwardLabel = document.getElementById("forward-label");
   const forwardBar = document.getElementById("forward-bar");
+  const netMarksEl = document.getElementById("net-marks");
   const receiptEl = document.getElementById("receipt");
   const stampMetrics = document.getElementById("stamp-metrics");
   const labError = document.getElementById("lab-error");
@@ -76,6 +78,59 @@ export function mountOtpPage() {
     `;
   }
 
+  // Real network readings plotted inside the current countdown cycle. Every
+  // fresh pulse median drops a mark; marks vanish at the next bin rollover.
+  const MAX_NET_MARKS = 24;
+  let netMarks = []; // [{ ms, el }]
+
+  function addNetMark(measuredMs) {
+    if (!netMarksEl || !Number.isFinite(measuredMs)) return;
+    const el = document.createElement("i");
+    el.className = "otp-net-mark";
+    const mark = { ms: measuredMs, el };
+    netMarks.push(mark);
+    // Newest reading is the bright one; older marks stay as a dim trail.
+    for (const m of netMarks) m.el.classList.toggle("latest", m === mark);
+    el.classList.add("flash");
+    setTimeout(() => el.classList.remove("flash"), 750);
+    while (netMarks.length > MAX_NET_MARKS) {
+      const oldest = netMarks.shift();
+      oldest.el.remove();
+    }
+    netMarksEl.appendChild(el);
+    // Position the new mark immediately — if we waited for the next paint,
+    // it would sit (and flash) at the 0% edge while the async Get resolves.
+    const now = Date.now();
+    const auth = readAuthClock();
+    const gotAt = auth?.got_at_ms ?? auth?.adopted_at_ms ?? now;
+    positionNetMarks(
+      (auth?.otp_time_ms ?? now) + Math.max(0, now - gotAt),
+      OTP_BIN_MS,
+    );
+  }
+
+  // Prune + position the real-mark trail for the given countdown estimate.
+  // Marks from a finished bin are dropped (the cycle "reset"); the rest keep
+  // a fixed in-cycle position (binEnd is constant until rollover).
+  function positionNetMarks(smoothMs, bin) {
+    if (!netMarks.length) return;
+    const binStart = Math.floor(smoothMs / bin) * bin;
+    const binEnd = binStart + bin;
+    for (let i = netMarks.length - 1; i >= 0; i--) {
+      const mark = netMarks[i];
+      if (mark.ms < binStart) {
+        mark.el.remove();
+        netMarks.splice(i, 1);
+        continue;
+      }
+      const pct = Math.max(
+        0,
+        Math.min(100, ((binEnd - mark.ms) / bin) * 100),
+      );
+      mark.el.style.left = `${pct}%`;
+    }
+  }
+
   function paintMeters(epoch) {
     ensureMetricShell();
     const auth = readAuthClock();
@@ -86,19 +141,50 @@ export function mountOtpPage() {
     const freshPct = Math.round(
       Math.max(0, Math.min(1, 1 - (poll.tip_age_ms ?? 0) / ageCap)) * 100,
     );
-    const forwardPct = Math.round(
-      ((epoch.forward_ms ?? 0) / Math.max(epoch.bin_ms || 1, 1)) * 100,
-    );
+    // Smooth NTP-style countdown: anchored tip advanced by local elapsed time.
+    // The bar drains continuously; a fresh reading only corrects the anchor
+    // (slew), so the countdown never jumps — it seeks the real mark.
+    const now = Date.now();
+    const bin = OTP_BIN_MS;
+    const gotAt = auth?.got_at_ms ?? auth?.adopted_at_ms ?? now;
+    const tipMs = auth?.otp_time_ms ?? epoch?.otp_time_ms ?? now;
+    const smoothMs = tipMs + Math.max(0, now - gotAt);
+    const binEnd = (Math.floor(smoothMs / bin) + 1) * bin;
+    const remainMs = Math.max(1, binEnd - smoothMs);
+    const forwardPct = Math.round((remainMs / bin) * 100);
 
     tickLabel.textContent = `${ageSec}s ago`;
     tickBar.style.width = `${freshPct}%`;
     tickBar.dataset.level =
       freshPct > 60 ? "high" : freshPct > 25 ? "mid" : "low";
 
-    forwardLabel.textContent = `${Math.round((epoch.forward_ms ?? 0) / 1000)}s`;
+    forwardLabel.textContent = `${Math.round(remainMs / 1000)}s`;
     forwardBar.style.width = `${forwardPct}%`;
     forwardBar.dataset.level =
       forwardPct > 40 ? "high" : forwardPct > 15 ? "mid" : "low";
+
+    // Real network marks — every fresh pulse median stays plotted for the
+    // rest of the cycle (a dim trail of where the network actually was), not
+    // just the latest one. All of them clear at the next bin rollover.
+    positionNetMarks(smoothMs, bin);
+    const latestMark = netMarks[netMarks.length - 1] ?? null;
+    if (latestMark) {
+      const driftSec = Math.round((latestMark.ms - smoothMs) / 100) / 10;
+      latestMark.el.title =
+        driftSec === 0
+          ? "Real network mark — aligned"
+          : `Real network mark ${driftSec > 0 ? "+" : ""}${driftSec}s`;
+      if (Math.abs(driftSec) >= 1.5) {
+        // Clamp: when the real mark already crossed the estimate's rollover
+        // edge, show the next-bin countdown instead of a negative number.
+        const netSec = Math.max(
+          0,
+          Math.round((binEnd - latestMark.ms) / 1000),
+        );
+        forwardLabel.textContent =
+          `${Math.round(remainMs / 1000)}s · net ${netSec}s`;
+      }
+    }
 
     document.getElementById("m-auth").textContent =
       authHeldSeq != null ? `#${authHeldSeq}` : "—";
@@ -144,7 +230,7 @@ export function mountOtpPage() {
           pulse_median_id: meta.tip ?? authHeldTip,
           auth_sequence: meta.seq ?? authHeldSeq,
           source: meta.source,
-          note: "TOTP over Kairos pulse-map median; Get is read-only; Verify Gets independently",
+          note: "TOTP over Kairos pulse-map median; Get pulses first, then reads; Verify Gets independently",
         },
         null,
         2,
@@ -185,6 +271,12 @@ export function mountOtpPage() {
     const clock = adoptAuthClock(network, { subscribe: true });
     authHeldSeq = clock?.sequence ?? network.sequence;
     authHeldTip = network.tip;
+    // Fresh real reading — plot it on the countdown bar. The mark stays for
+    // the rest of this cycle (until the next bin rollover), so you can see
+    // every real network measurement, not just the latest one.
+    addNetMark(
+      network.measured_median_ms ?? clock?.measured_median_ms ?? null,
+    );
     await refreshFromAuthClock();
     if (authStatus) {
       authStatus.textContent = `Subscribed · pulse median #${authHeldSeq} (${reason})`;
@@ -200,10 +292,14 @@ export function mountOtpPage() {
     }
     try {
       showErr("");
-      // NEW CODE - TESTING: read-only Get (no pulse)
-      const network = await fetchOtpNetworkClock((msg) => {
-        if (authStatus) authStatus.textContent = msg;
-      });
+      // Pulse first (submitPulse) so this read's median includes our fresh
+      // observation, then Get the contract.
+      const network = await fetchOtpNetworkClock(
+        (msg) => {
+          if (authStatus) authStatus.textContent = msg;
+        },
+        { pulse: true },
+      );
       await applyNetworkTip(network, reason);
     } catch (err) {
       showErr(err?.message || String(err));
@@ -213,6 +309,17 @@ export function mountOtpPage() {
 
   function paintBeliefOnly() {
     const auth = readAuthClock();
+    // Keep the real-mark trail aligned with the countdown cycle even before a
+    // stamp exists (pulse-only mode): drop marks as their bins elapse so the
+    // reset at each rollover is airtight regardless of the stamp gate below.
+    if (auth?.otp_time_ms != null) {
+      const now = Date.now();
+      const gotAt = auth?.got_at_ms ?? auth?.adopted_at_ms ?? now;
+      positionNetMarks(
+        auth.otp_time_ms + Math.max(0, now - gotAt),
+        OTP_BIN_MS,
+      );
+    }
     if (!auth?.stamp) return;
     if (live) {
       const epoch = otpEpochState({
@@ -234,9 +341,13 @@ export function mountOtpPage() {
     verifyResult.textContent = "Verifier Get…";
     if (verifyStatus) verifyStatus.textContent = "Independent Freenet Get…";
     try {
-      const network = await fetchOtpNetworkClock((msg) => {
-        if (verifyStatus) verifyStatus.textContent = msg;
-      });
+      // Pulse first, then read — same as the authenticator Get.
+      const network = await fetchOtpNetworkClock(
+        (msg) => {
+          if (verifyStatus) verifyStatus.textContent = msg;
+        },
+        { pulse: true },
+      );
       lastNetwork = network;
       const result = await verifyKairosOtp(secret, verifyInput.value, {
         live: network,

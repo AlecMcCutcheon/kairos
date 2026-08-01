@@ -2,34 +2,52 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <link rel="shortcut icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>API surfaces · Wiki · Kairos</title>
-    <link rel="stylesheet" href="styles.css?v=20260730ac" />
+    <link rel="stylesheet" href="styles.css?v=20260731ar" />
+
+    <!-- SEO-BEGIN -->
+    <meta name="description" content="Learn the Kairos API surfaces for Get, Subscribe, network duty, identity delegates, stamps, and portable notary receipts." />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0c2218" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Kairos · verifiable time for Freenet" />
+    <meta property="og:title" content="API surfaces · Wiki · Kairos" />
+    <meta property="og:description" content="Learn the Kairos API surfaces for Get, Subscribe, network duty, identity delegates, stamps, and portable notary receipts." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="API surfaces · Wiki · Kairos" />
+    <meta name="twitter:description" content="Learn the Kairos API surfaces for Get, Subscribe, network duty, identity delegates, stamps, and portable notary receipts." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","name":"API surfaces · Wiki · Kairos","description":"Learn the Kairos API surfaces for Get, Subscribe, network duty, identity delegates, stamps, and portable notary receipts.","isPartOf":{"@type":"WebSite","name":"Kairos · verifiable time for Freenet"},"headline":"API surfaces · Wiki · Kairos"}</script>
+    <!-- Canonical, og:url, og:image, and Twitter image are intentionally omitted until this site has a stable public origin; the current Freenet gateway URL is node-local. -->
+    <!-- SEO-END -->
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <a class="brand" href="./"><img class="brand-mark" src="kairos-hourglass.svg?v=20260731ar" alt="" aria-hidden="true" /> <span class="brand-name">Kairos</span><span class="brand-suffix">time</span></a>
       <nav class="nav" aria-label="Primary">
-        <a href="telemetry.html">Telemetry</a>
-        <a href="wiki.html">Wiki</a>
-        <a href="use-cases.html">Use cases</a>
-        <a href="otp.html">OTP</a>
-        <a href="schema.html">Schema</a>
+        <a href="./">Home</a>
+        <a href="telemetry">Telemetry</a>
+        <a href="wiki">Wiki</a>
+        <a href="use-cases">Use cases</a>
+        <a href="otp">OTP</a>
+        <a href="schema">Schema</a>
       </nav>
     </header>
 
     <div class="wiki-layout">
       <nav class="wiki-nav" aria-label="Wiki">
         <p class="wiki-nav-title">Wiki</p>
-        <a href="wiki.html">Overview</a>
-        <a href="wiki-pulses-stamps.html">Pulses vs stamps</a>
-        <a href="wiki-gets.html">Get &amp; Subscribe</a>
-        <a href="wiki-api.html" aria-current="page">API surfaces</a>
-        <a href="wiki-notary.html">Notary receipts</a>
-        <a href="wiki-identity.html">Identity &amp; age</a>
-        <a href="wiki-security.html">Trust &amp; security</a>
-        <a href="wiki-otp.html">OTP</a>
-        <a href="wiki-hosting.html">Hosting</a>
+        <a href="wiki">Overview</a>
+        <a href="wiki-pulses-stamps">Pulses vs stamps</a>
+        <a href="wiki-gets">Get &amp; Subscribe</a>
+        <a href="wiki-api" aria-current="page">API surfaces</a>
+        <a href="wiki-notary">Notary receipts</a>
+        <a href="wiki-identity">Identity &amp; age</a>
+        <a href="wiki-security">Trust &amp; security</a>
+        <a href="wiki-otp">OTP</a>
+        <a href="wiki-hosting">Hosting</a>
       </nav>
 
       <main class="wiki-article prose">
@@ -38,7 +56,9 @@
           Contract updates are small JSON deltas over Freenet
           <code>Update</code>. Reads are <code>Get</code> /
           <code>Subscribe</code> on the Kairos contract key. Signing prefers the
-          <code>kairos-identity</code> delegate.
+          <code>kairos-identity</code> delegate. If the session starts with the
+          delegate, a later signing failure stops that operation instead of
+          silently switching to the browser fallback key.
         </p>
 
         <h2>1. Pulse (write)</h2>
@@ -54,7 +74,8 @@
         <p>
           Domain <code>kairos.pulse.v1</code>. Keeps the contract hosted and ages
           the roster. Site helper: <code>submitPulse()</code> (delegate sign +
-          Update). Do not combine with a “Get” button — Get is read-only.
+          Update). The OTP page pulses first, then reads — its Get buttons send
+          a pulse before fetching so the median includes your fresh observation.
         </p>
 
         <h2>2. Open stamp (write)</h2>
@@ -85,7 +106,7 @@
           <code>sealed_stamps</code>. With <code>subscribe: true</code>, the
           gateway pushes <code>UpdateNotification</code> on later Updates — apps
           re-Get or apply deltas then. See
-          <a href="wiki-gets.html">Get &amp; Subscribe</a>.
+          <a href="wiki-gets">Get &amp; Subscribe</a>.
         </p>
 
         <h2>5. Identity delegate (local)</h2>
@@ -93,8 +114,10 @@
           <code>EnsureIdentity</code>, <code>SignPulse</code>,
           <code>SignStampObserve</code> (optional Export/Import). Auto-mints a
           label like <code>kairos-a3f1…</code>. If the delegate is unavailable,
-          the site falls back to a durable browser key. See
-          <a href="wiki-identity.html">Identity &amp; age</a>.
+          the site falls back to a durable browser key during initial identity
+          bootstrap. Once a backend is selected, signing stays on that backend:
+          a delegate outage fails closed instead of mixing witness identities.
+          See <a href="wiki-identity">Identity &amp; age</a>.
         </p>
 
         <h2>6. Network duty (one call — help the oracle)</h2>
@@ -138,9 +161,32 @@
 }
         </pre>
         <p>
-          Telemetry’s timer/button uses <code>runNetworkDuty()</code>. “Get
-          only” uses <code>queryNetworkDuty()</code> so you can see what help
-          would look like without writing.
+          The Telemetry page starts bounded duty automatically; there is no
+          manual Pulse or Refresh control. “Get only” uses
+          <code>queryNetworkDuty()</code> so you can see what help would look
+          like without writing.
+        </p>
+
+        <h2>Soft Kairos time for Tyche</h2>
+        <p>
+          The Tyche client can read an aged Kairos pulse median as a
+          client-side coordination hint. It reports the source and confidence,
+          retains a last-known verified value through short gateway failures,
+          retries with backoff, and eventually labels a local-clock fallback.
+          This never replaces signed Tyche timestamps or turns Kairos into a
+          hard cross-contract dependency.
+        </p>
+
+        <h2>Dual public-good duty</h2>
+        <p>
+          The Kairos site also runs Tyche’s bounded <code>watchTycheDuty()</code>
+          beside its own <code>watchNetworkDuty()</code>. This is deliberately
+          two independent witnesses: Kairos uses its Kairos identity and
+          contract; Tyche uses its Tyche identity and contract. The coordinator
+          only pulses and contributes to existing eligible work — it never opens
+          or closes a Tyche round, opens recovery, or changes either protocol.
+          Apps can use the same pattern when they want one Freenet service to
+          soft-host both public goods.
         </p>
 
         <h2>Client checklist (app author)</h2>
@@ -155,18 +201,18 @@
           <li>
             Continuous clock: Subscribe + <em>hardened</em> pulse tip (OTP
             pattern) — not raw public median. Limits:
-            <a href="wiki-security.html">Trust &amp; security</a>.
+            <a href="wiki-security">Trust &amp; security</a>.
           </li>
           <li>
             Authoritative time for a hash: open → wait for seal → Get sealed
             entry → build
-            <a href="wiki-notary.html">notary receipt</a>.
+            <a href="wiki-notary">notary receipt</a>.
           </li>
         </ol>
 
         <p>
           JSON field reference:
-          <a href="schema.html">Schema</a> / repo <code>SCHEMA.md</code>.
+          <a href="schema">Schema</a> / repo <code>SCHEMA.md</code>.
         </p>
       </main>
     </div>
@@ -174,6 +220,6 @@
     <footer class="site-footer">
       <strong>Kairos</strong> wiki · API
     </footer>
-    <script type="module" src="app.js?v=20260730ac"></script>
+    <script type="module" src="app.js?v=20260731ar"></script>
   </body>
 </html>

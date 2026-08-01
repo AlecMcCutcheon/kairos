@@ -12,6 +12,7 @@ import {
   OTP_MAX_TIP_JUMP_MS,
 } from "./kairos-api.js";
 import { onContractUpdate } from "./ws.js";
+import { computeAnchoredTip } from "./otp-tip.js";
 
 function hashTip(s) {
   let h = 2166136261;
@@ -41,35 +42,43 @@ export function clockFromKairosState(state, opts = {}) {
   // Raw pulseStats median of everyone — Sybil-floodable.
   // NEW CODE - TESTING: trusted weighted tip + jump guard
   if (stats.median_wall_ms != null) {
-    let otp_time_ms = stats.median_wall_ms;
-    let jump_blocked = false;
-    let confidence_ms = stats.confidence_ms ?? 80;
-    if (
-      prev?.otp_time_ms != null &&
-      Math.abs(otp_time_ms - prev.otp_time_ms) > OTP_MAX_TIP_JUMP_MS
-    ) {
-      // Keep previous tip; widen uncertainty (attacker may be yanking the map).
-      otp_time_ms = prev.otp_time_ms;
-      jump_blocked = true;
-      confidence_ms = Math.max(confidence_ms, OTP_MAX_TIP_JUMP_MS);
-    }
+    // Anchor: advance the last accepted tip by local elapsed time, then apply
+    // only a bounded fraction of the drift (NTP-style slew). A gross jump past
+    // the guard holds the previous tip; the tip never moves backwards.
+    const anchored = computeAnchoredTip({
+      prev,
+      gotAt,
+      medianMs: stats.median_wall_ms,
+      confidenceMs: stats.confidence_ms ?? 80,
+      maxJumpMs: OTP_MAX_TIP_JUMP_MS,
+    });
+    const otp_time_ms = anchored.otp_time_ms;
+    const jump_blocked = anchored.jump_blocked;
+    const confidence_ms = anchored.confidence_ms;
     const tip = `pulse:${stats.trusted_mode}:${otp_time_ms}:${stats.trusted_count}`;
+    // source: pulse-anchored | pulse-hold | pulse-bootstrap | pulse-reanchor
+    const source =
+      anchored.source === "hold"
+        ? "pulse-hold"
+        : anchored.source === "reanchor"
+          ? "pulse-reanchor"
+          : anchored.source === "bootstrap"
+            ? "pulse-bootstrap"
+            : "pulse-anchored";
     return {
       sequence: hashTip(tip),
       sealed_at_ms: gotAt,
       otp_time_ms,
+      measured_median_ms: stats.median_wall_ms,
       request_id: tip,
       tip,
-      source: jump_blocked
-        ? "pulse-hold"
-        : stats.trusted_mode === "bootstrap"
-          ? "pulse-bootstrap"
-          : "pulse",
+      source,
       got_at_ms: gotAt,
       pulse_witnesses: stats.witness_count,
       trusted_count: stats.trusted_count,
       trusted_mode: stats.trusted_mode,
       jump_blocked,
+      slew_ms: anchored.slew_ms,
       sealed_count,
       stamp: {
         median_wall_ms: otp_time_ms,
@@ -90,6 +99,7 @@ export function clockFromKairosState(state, opts = {}) {
       sequence: hashTip(tip),
       sealed_at_ms: s.sealed_at_ms ?? gotAt,
       otp_time_ms,
+      measured_median_ms: s.median_wall_ms,
       request_id: requestId,
       tip,
       source: "sealed",

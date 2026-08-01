@@ -1,0 +1,16 @@
+import { FreenetWsApi, GetRequest, GetResponse } from "@freenetorg/freenet-stdlib";
+function url(){const l=globalThis.location; return new URL(`${l?.protocol === "https:" ? "wss:" : "ws:"}//${l?.host || "127.0.0.1:7509"}/v1/contract/command`);}
+let conn=null, connecting=null; const updates=new Set(), payloads=new Set(), rawDelegates=new Set();
+function parse(r){const out=[]; for(const v of r?.values||[]){if(v.inboundType!==1||!v.inbound?.payload?.length)continue; try{out.push(JSON.parse(new TextDecoder().decode(new Uint8Array(v.inbound.payload))))}catch{}} return out;}
+async function open(){let resolve,reject; const ready=new Promise((a,b)=>{resolve=a;reject=b}); let api; const h={onOpen:resolve,onContractPut:()=>{},onContractGet:()=>{},onContractUpdate:()=>{},onContractUpdateNotification:n=>{for(const f of updates)f(n?.key,n)},onContractNotFound:()=>{},onDelegateResponse:r=>{for(const f of rawDelegates)f(r); const ps=parse(r); for(const f of payloads)f(ps)},onErr:e=>reject(new Error(String(e?.cause||e))),onClose:(c,r)=>reject(new Error(`Connection closed: ${c} ${r||""}`))}; api=new FreenetWsApi(url(),h,""); await Promise.race([ready,new Promise((_,b)=>setTimeout(()=>b(new Error("Freenet WS connect timeout")),12000))]); return {api};}
+async function ensure(){if(conn)return conn;if(connecting)return connecting; connecting=open().then(c=>(conn=c,connecting=null,c)).catch(e=>(connecting=null,conn=null,Promise.reject(e)));return connecting;}
+export async function getFreenetApi(){return (await ensure()).api;}
+function bytes(s){if(s instanceof Uint8Array)return s;if(Array.isArray(s))return new Uint8Array(s);return s?.data?new Uint8Array(s.data):null;}
+export async function getContractState(key,opts={}){const r=await Promise.race([(await ensure()).api.get(new GetRequest(key,!!opts.fetchContract,!!opts.subscribe,false)),new Promise((_,b)=>setTimeout(()=>b(new Error("GET timeout")),opts.timeoutMs??20000))]); if(!(r instanceof GetResponse)&&r?.state==null)throw new Error("unexpected GET result"); const b=bytes(r.state);if(!b?.length)throw new Error("empty GET state");return b;}
+export async function tryGetContractState(key,opts={}){try{return await getContractState(key,opts)}catch{return null}}
+function wait(key,ms=45000){return new Promise((resolve,reject)=>{const t=setTimeout(()=>{updates.delete(f);reject(new Error("update notification timeout"))},ms);const f=(got)=>{if(!got||got.encode?.()===key.encode?.()){clearTimeout(t);updates.delete(f);resolve()}};updates.add(f)})}
+export async function putContract(req,key){const api=await getFreenetApi();const n=key?wait(key):null;try{await Promise.race([api.put(req),n,new Promise((_,b)=>setTimeout(()=>b(new Error("PUT timeout")),45000))])}catch(e){if(n&&await n.catch(()=>false))return;throw e}}
+export async function updateContract(req,key){const api=await getFreenetApi();const n=key?wait(key):null;try{await Promise.race([api.update(req),n,new Promise((_,b)=>setTimeout(()=>b(new Error("UPDATE timeout")),45000))])}catch(e){if(n&&await n.catch(()=>false))return;throw e}}
+export function onContractUpdate(f){updates.add(f);return()=>updates.delete(f)}
+export function onDelegatePayloads(f){payloads.add(f);return()=>payloads.delete(f)}
+export function onDelegateResponseRaw(f){rawDelegates.add(f);return()=>rawDelegates.delete(f)}

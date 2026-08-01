@@ -138,6 +138,15 @@ a:hover {
   letter-spacing: -0.02em;
 }
 
+.brand-mark {
+  width: 1.22em;
+  height: 1.22em;
+  flex: 0 0 auto;
+  color: var(--brass);
+  align-self: center;
+  filter: drop-shadow(0 0 0.5rem rgba(212, 168, 75, 0.12));
+}
+
 .brand span {
   color: var(--brass);
   font-weight: 500;
@@ -145,6 +154,26 @@ a:hover {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-family: var(--font-body);
+}
+
+.brand .brand-name {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: none;
+  font-family: inherit;
+}
+
+.brand .brand-suffix {
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: lowercase;
+  margin-left: -0.18rem;
 }
 
 .nav {
@@ -192,11 +221,154 @@ a:hover {
   color: var(--brass);
 }
 
+.hero-kicker {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+
 .hero-line {
   max-width: 28rem;
   font-size: clamp(1.05rem, 2.2vw, 1.25rem);
   color: var(--muted);
   margin: 0 0 2rem;
+}
+
+.home-page {
+  justify-content: flex-start;
+  padding-top: clamp(3.5rem, 10vh, 6.5rem);
+  padding-bottom: 5rem;
+}
+
+.home-overview {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.72fr) minmax(0, 1.28fr);
+  gap: 2rem;
+  align-items: start;
+  width: 100%;
+  margin-top: clamp(3.5rem, 9vh, 6rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.home-overview-intro h2 {
+  max-width: 18rem;
+  margin: 0.55rem 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 3.2vw, 2.35rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.home-overview-intro p:last-child {
+  max-width: 25rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
+.home-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.home-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 10rem;
+  padding: 1rem 1.05rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  background: linear-gradient(145deg, rgba(20, 53, 40, 0.45), rgba(6, 20, 15, 0.42));
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.25s var(--ease), border-color 0.25s, background 0.25s;
+}
+
+.home-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(212, 168, 75, 0.55);
+  background: linear-gradient(145deg, rgba(20, 53, 40, 0.68), rgba(6, 20, 15, 0.55));
+}
+
+.home-card-kicker {
+  color: var(--brass);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.home-card strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  line-height: 1.1;
+}
+
+.home-card > span:not(.home-card-kicker) {
+  max-width: 22rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.home-card-arrow {
+  margin-top: auto;
+  align-self: flex-end;
+  color: var(--mint);
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.wiki-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: stretch;
+  margin: 2rem 0 2.5rem;
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: linear-gradient(120deg, rgba(20, 53, 40, 0.42), rgba(212, 168, 75, 0.04));
+}
+
+.wiki-flow-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.65rem;
+}
+
+.wiki-flow-number {
+  color: var(--brass);
+  font: 0.68rem ui-monospace, Menlo, monospace;
+  letter-spacing: 0.08em;
+}
+
+.wiki-flow-step strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.wiki-flow-step span:last-child {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.wiki-flow-arrow {
+  align-self: center;
+  color: var(--mint-dim);
+  font-size: 1.3rem;
 }
 
 .cta-row {
@@ -291,8 +463,21 @@ a:hover {
   max-width: 42rem;
 }
 
-.prose ul {
-  padding-left: 1.2rem;
+.prose ul,
+.prose ol {
+  padding-left: 1.25rem;
+}
+
+.prose li::marker {
+  color: var(--brass);
+}
+
+.prose strong {
+  color: var(--ink);
+}
+
+.prose em {
+  color: #b9d5c3;
 }
 
 .prose code,
@@ -300,6 +485,10 @@ a:hover {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 0.9em;
   color: var(--mint);
+  background: rgba(62, 207, 142, 0.07);
+  border: 1px solid rgba(62, 207, 142, 0.1);
+  border-radius: 0.3rem;
+  padding: 0.08em 0.32em;
 }
 
 .panel {
@@ -740,6 +929,20 @@ textarea:focus {
 }
 
 @media (max-width: 640px) {
+  .home-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wiki-flow {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+
+  .wiki-flow-arrow {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+
   .witness-list li {
     grid-template-columns: 1fr;
     gap: 0.35rem;
@@ -970,6 +1173,63 @@ textarea:focus {
   background: linear-gradient(90deg, #8a4038, var(--danger));
 }
 
+/* Real network marks — every fresh measured pulse median is plotted inside
+ * the current countdown cycle (cleared at the next bin rollover). The newest
+ * is bright, older ones stay as a dim trail of where the network actually
+ * was. Marks live in their own layer (a div), so the shared `.otp-ring-track
+ * > i` bar rule never applies to them. */
+.otp-bin-wrap .otp-ring-track {
+  position: relative;
+}
+
+.otp-net-marks {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.otp-net-marks > i.otp-net-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0%;
+  width: 2px;
+  height: auto;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--danger);
+  box-shadow: 0 0 3px rgba(232, 92, 74, 0.55);
+  opacity: 0.4;
+  transform: translateX(-1px);
+  pointer-events: auto;
+}
+
+.otp-net-marks > i.otp-net-mark.latest {
+  opacity: 0.95;
+  box-shadow: 0 0 5px rgba(232, 92, 74, 0.8);
+}
+
+.otp-net-marks > i.otp-net-mark.flash {
+  animation: otp-tick-flash 0.7s var(--ease) 1;
+}
+
+@keyframes otp-tick-flash {
+  0% {
+    opacity: 0.95;
+    box-shadow: 0 0 0 rgba(232, 92, 74, 0);
+  }
+  45% {
+    opacity: 1;
+    box-shadow: 0 0 10px 2px rgba(232, 92, 74, 0.9);
+  }
+  100% {
+    opacity: 0.95;
+    box-shadow: 0 0 4px rgba(232, 92, 74, 0.75);
+  }
+}
+
 .otp-ring-labels {
   display: flex;
   justify-content: space-between;
@@ -1054,13 +1314,25 @@ textarea:focus {
 
 /* —— Wiki docs layout —— */
 .wiki-layout {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
   gap: 2.5rem;
   max-width: var(--max);
   margin: 0 auto;
-  padding: 2.5rem 1.5rem 4rem;
+  padding: 3.25rem 1.5rem 5rem;
   align-items: start;
+}
+
+.wiki-layout::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: min(var(--max), 100%);
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, var(--line), transparent);
+  pointer-events: none;
 }
 
 .wiki-nav {
@@ -1069,9 +1341,9 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  padding: 0.75rem 0;
+  padding: 0.9rem 1rem 0.9rem 0;
   border-right: 1px solid var(--line);
-  padding-right: 1.25rem;
+  background: linear-gradient(180deg, rgba(12, 34, 24, 0.42), transparent 75%);
 }
 
 .wiki-nav .wiki-nav-title {
@@ -1099,12 +1371,35 @@ textarea:focus {
 
 .wiki-nav a[aria-current="page"] {
   color: var(--ink);
-  background: rgba(62, 207, 142, 0.12);
+  background: linear-gradient(90deg, rgba(62, 207, 142, 0.16), rgba(62, 207, 142, 0.03));
+  box-shadow: inset 2px 0 0 var(--mint);
+}
+
+.wiki-nav a {
+  transition: color 0.2s var(--ease), background 0.2s var(--ease), transform 0.2s var(--ease);
+}
+
+.wiki-nav a:hover {
+  transform: translateX(2px);
 }
 
 .wiki-article {
   min-width: 0;
+  max-width: 47rem;
   animation: rise 0.7s var(--ease) both;
+}
+
+.wiki-article > h1 {
+  text-wrap: balance;
+}
+
+.wiki-article > h2 {
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(232, 242, 236, 0.08);
+}
+
+.wiki-article > h2:first-of-type {
+  border-top: 0;
 }
 
 .wiki-article.prose p,
@@ -1140,7 +1435,30 @@ textarea:focus {
   overflow-x: auto;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media (max-width: 800px) {
+  .home-overview {
+    grid-template-columns: 1fr;
+    gap: 1.35rem;
+  }
+
+  .home-overview-intro h2 {
+    max-width: 26rem;
+  }
+
   .wiki-layout {
     grid-template-columns: 1fr;
     gap: 1.25rem;

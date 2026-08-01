@@ -12,6 +12,8 @@ import {
   MIN_STAMP_WITNESSES,
   EXAMPLE_STAMP_ID,
 } from "./network-duty.js";
+import { ensureSiteDualDuty } from "./dual-duty.js";
+import { describePublicGood, KAIROS_PUBLIC_GOOD, PUBLIC_GOODS_PROTOCOL } from "./public-goods.js";
 
 function formatIso(ms) {
   return new Date(ms).toISOString();
@@ -153,6 +155,21 @@ function renderSealed(state, sealedMetrics, sealedList, sealHelp = null) {
   ].join("\n");
 }
 
+let lastRosterRenderSignature = "";
+let lastMetricsRenderSignature = "";
+let lastSealedRenderSignature = "";
+let lastSealWitnessRenderSignature = "";
+const renderedWitnessIds = new Set();
+const stableKairosRoster = new Map();
+const missingKairosRosterReads = new Map();
+const KAIROS_ROSTER_MISSING_GRACE_READS = 3;
+
+function findWitnessRow(root, nodeId) {
+  return [...(root?.querySelectorAll(".kairos-witness-row") || [])].find(
+    (row) => row.querySelector("[data-node-id]")?.dataset.nodeId === nodeId,
+  );
+}
+
 function paintTelemetryFromDuty(detail) {
   const result = detail?.result || detail;
   if (!result?.state) return;
@@ -169,69 +186,139 @@ function paintTelemetryFromDuty(detail) {
   const state = result.state;
   const identity = result.identity;
   const stats = pulseStats(state);
-  const dutySummary = result.plan?.summary || "—";
+  const incomingRoster = Object.entries(state.roster || {})
+    .map(([nodeId, entry]) => ({ nodeId, entry }))
+    .filter(({ nodeId, entry }) => nodeId && entry && typeof entry === "object");
 
-  if (statusEl) {
-    if (result.errors?.length) {
-      statusEl.hidden = false;
-      statusEl.textContent = result.errors.map((e) => e.error).join("; ");
+  // Freenet can briefly expose a partial/empty snapshot while a subscription
+  // catches up. Keep the last known roster row mounted through three missing
+  // reads; genuine pruning still takes effect once the absence is persistent.
+  for (const witness of incomingRoster) {
+    stableKairosRoster.set(witness.nodeId, witness);
+    missingKairosRosterReads.delete(witness.nodeId);
+  }
+  for (const nodeId of stableKairosRoster.keys()) {
+    if (incomingRoster.some((witness) => witness.nodeId === nodeId)) continue;
+    const missing = (missingKairosRosterReads.get(nodeId) || 0) + 1;
+    if (missing >= KAIROS_ROSTER_MISSING_GRACE_READS) {
+      stableKairosRoster.delete(nodeId);
+      missingKairosRosterReads.delete(nodeId);
     } else {
-      statusEl.hidden = true;
-      statusEl.textContent = "";
+      missingKairosRosterReads.set(nodeId, missing);
     }
   }
+  const roster = [...stableKairosRoster.values()]
+    .map(({ nodeId, entry }) => ({ nodeId, entry, pulse: state.pulse?.[nodeId] || null }))
+    .sort((a, b) => String(a.nodeId).localeCompare(String(b.nodeId)));
+  const pulseById = new Map(stats.observations.map((observation) => [observation.node_id, observation]));
+  const med = stats.median_wall_ms;
+  const deviations = roster
+    .map(({ pulse }) => pulse && med != null ? Math.abs(Number(pulse.wall_ms) - med) : 0)
+    .filter((value) => value > 0);
+  const maxDev = Math.max(...deviations, 1);
+  const stableEligibleCount = roster.filter(
+    ({ entry }) => Number(entry.last_seen_ms) - Number(entry.first_seen_ms) >= MIN_AGE_MS,
+  ).length;
+  const dutySummary = result.plan?.summary || "";
+
+  if (statusEl) {
+    const errors = result.errors?.map((error) => error.error).filter(Boolean) || [];
+    statusEl.hidden = errors.length === 0;
+    statusEl.textContent = errors.join("; ");
+  }
   if (modePill) {
-    modePill.textContent = "Live Freenet · duty";
+    modePill.textContent = "Live Freenet · automatic duty";
     modePill.classList.add("live-pill");
   }
-  if (identityEl && identity) {
-    identityEl.textContent = `${identity.label} · via ${identity.backend} · ${dutySummary}`;
+  if (identityEl && !identityEl.dataset.ready && identity) {
+    identityEl.textContent = "Automatic witness duty is active.";
+    identityEl.dataset.ready = "1";
   }
 
-  metrics.innerHTML = `
-    <div class="metric"><span class="label">Median pulse</span><span class="value small">${stats.median_wall_ms != null ? formatIso(stats.median_wall_ms) : "—"}</span></div>
-    <div class="metric"><span class="label">Pulse spread</span><span class="value">${formatConfidence(stats.confidence_ms)}</span></div>
-    <div class="metric"><span class="label">Live pulses</span><span class="value">${stats.witness_count}</span></div>
-    <div class="metric"><span class="label">Roster / eligible</span><span class="value small">${stats.roster_count} / ${stats.eligible_count}</span></div>
-    <div class="metric"><span class="label">Sealed stamps</span><span class="value">${stats.sealed_count}</span></div>
-    <div class="metric"><span class="label">Open stamps</span><span class="value">${stats.open_count}</span></div>
-  `;
+  const metricsSignature = JSON.stringify([
+    stats.median_wall_ms,
+    stats.confidence_ms,
+    stats.witness_count,
+    roster.length,
+    stableEligibleCount,
+    stats.sealed_count,
+    stats.open_count,
+  ]);
+  if (metricsSignature !== lastMetricsRenderSignature) {
+    metrics.innerHTML = `
+      <div class="metric"><span class="label">Median pulse</span><span class="value small">${stats.median_wall_ms != null ? formatIso(stats.median_wall_ms) : "—"}</span></div>
+      <div class="metric"><span class="label">Pulse spread</span><span class="value">${formatConfidence(stats.confidence_ms)}</span></div>
+      <div class="metric"><span class="label">Live pulses</span><span class="value">${stats.witness_count}</span></div>
+      <div class="metric"><span class="label">Roster / eligible</span><span class="value small">${roster.length} / ${stableEligibleCount}</span></div>
+      <div class="metric"><span class="label">Sealed stamps</span><span class="value">${stats.sealed_count}</span></div>
+      <div class="metric"><span class="label">Open stamps</span><span class="value">${stats.open_count}</span></div>
+    `;
+    lastMetricsRenderSignature = metricsSignature;
+  }
 
-  const med = stats.median_wall_ms ?? 0;
-  const maxDev = Math.max(
-    ...stats.observations.map((o) => Math.abs(o.wall_ms - med)),
-    1,
-  );
-  witnesses.innerHTML = stats.observations.length
-    ? stats.observations
-        .map((o) => {
-          const dev = Math.abs(o.wall_ms - med);
-          const pct = Math.max(8, 100 - (dev / maxDev) * 100);
-          const entry = state.roster?.[o.node_id];
-          const age = entry
-            ? formatAge(entry.last_seen_ms - entry.first_seen_ms)
-            : "?";
-          const elig =
-            entry && entry.last_seen_ms - entry.first_seen_ms >= MIN_AGE_MS
-              ? "✓"
-              : "·";
-          const mine =
-            identity && o.node_id === identity.nodeId ? " (you)" : "";
-          const label = witnessLabelFromNodeId(o.node_id);
-          const keyPrev = `${o.node_id.slice(0, 12)}…`;
-          return `<li>
+  // Presence comes from the roster, not the freshness filter. A stale or
+  // partially-read pulse can lose its bar, but it must never make a witness
+  // disappear from the public roster (especially the local witness).
+  const rosterSignature = JSON.stringify([
+    identity?.nodeId || null,
+    ...roster.map(({ nodeId, entry }) => [nodeId, entry.first_seen_ms]),
+  ]);
+  if (rosterSignature !== lastRosterRenderSignature) {
+    witnesses.innerHTML = roster.length
+      ? roster.map(({ nodeId, entry, pulse }) => {
+          const observation = pulseById.get(nodeId);
+          const dev = observation && med != null ? Math.abs(Number(observation.wall_ms) - med) : 0;
+          const pct = observation ? Math.max(8, 100 - (dev / maxDev) * 100) : 8;
+          const ageMs = Math.max(0, Number(entry.last_seen_ms) - Number(entry.first_seen_ms));
+          const age = formatAge(ageMs);
+          const eligible = ageMs >= MIN_AGE_MS ? "✓" : "·";
+          const mine = identity && nodeId === identity.nodeId ? " (you)" : "";
+          const label = witnessLabelFromNodeId(nodeId);
+          const keyPrev = `${nodeId.slice(0, 12)}…`;
+          const pulseText = observation ? `Δ${Math.round(dev)}ms` : "no recent pulse";
+          const motion = renderedWitnessIds.has(nodeId) ? "" : " is-new";
+          renderedWitnessIds.add(nodeId);
+          return `<li class="kairos-witness-row${motion}">
             <div class="witness-id">
-              <span class="witness-label">${label}${mine}</span>
-              <button type="button" class="witness-key" data-node-id="${o.node_id}" title="Copy full node id">${keyPrev}</button>
+              <span class="witness-label">${escHtml(label)}${escHtml(mine)}</span>
+              <button type="button" class="witness-key" data-node-id="${escHtml(nodeId)}" title="Copy full node id">${escHtml(keyPrev)}</button>
             </div>
-            <span class="bar" title="drift ${dev} ms"><i style="width:${pct}%"></i></span>
-            <span class="witness-meta">${elig} age ${age} · Δ${dev}ms</span>
+            <span class="bar" title="${escHtml(pulseText)}"><i style="width:${pct}%"></i></span>
+            <span class="witness-meta">${eligible} age ${age} · ${escHtml(pulseText)}</span>
           </li>`;
-        })
-        .join("")
-    : `<li><span class="id">none yet</span><span></span><span>waiting for pulses</span></li>`;
-  renderSealed(state, sealedMetrics, sealedList, dutySummary);
-  renderSealWitnessTable(state, sealWitnesses, identity);
+        }).join("")
+      : `<li><span class="id">none yet</span><span></span><span>waiting for witnesses</span></li>`;
+    lastRosterRenderSignature = rosterSignature;
+  }
+
+  // Keep age and pulse text fresh without replacing rows or replaying animation.
+  for (const { nodeId, entry, pulse } of roster) {
+    const row = findWitnessRow(witnesses, nodeId);
+    if (!row) continue;
+    const ageMs = Math.max(0, Number(entry.last_seen_ms) - Number(entry.first_seen_ms));
+    const observation = pulseById.get(nodeId);
+    const dev = observation && med != null ? Math.abs(Number(observation.wall_ms) - med) : 0;
+    const ageEl = row.querySelector(".witness-meta");
+    const bar = row.querySelector(".bar > i");
+    if (ageEl) {
+      ageEl.textContent = `${ageMs >= MIN_AGE_MS ? "✓" : "·"} age ${formatAge(ageMs)} · ${observation ? `Δ${Math.round(dev)}ms` : "no recent pulse"}`;
+    }
+    if (bar) {
+      bar.style.width = `${observation ? Math.max(8, 100 - (dev / maxDev) * 100) : 8}%`;
+      bar.parentElement.title = observation ? `drift ${Math.round(dev)} ms` : "no recent pulse";
+    }
+  }
+
+  const sealedSignature = JSON.stringify([state.open_stamps || {}, state.sealed_stamps || {}, dutySummary]);
+  if (sealedSignature !== lastSealedRenderSignature) {
+    renderSealed(state, sealedMetrics, sealedList, "automatic duty");
+    lastSealedRenderSignature = sealedSignature;
+  }
+  const sealWitnessSignature = JSON.stringify([state.sealed_stamps || {}, identity?.nodeId || null]);
+  if (sealWitnessSignature !== lastSealWitnessRenderSignature) {
+    renderSealWitnessTable(state, sealWitnesses, identity);
+    lastSealWitnessRenderSignature = sealWitnessSignature;
+  }
 }
 
 function bindWitnessKeyCopy(root) {
@@ -287,30 +374,26 @@ function runTelemetryUi() {
  * Safe to call from every page; only one watcher runs.
  */
 export function ensureSiteNetworkDuty() {
-  if (globalThis.__kairosSiteDutyStop) {
-    return globalThis.__kairosSiteDutyStop;
-  }
-  globalThis.__kairosSiteDutyStop = watchNetworkDuty({
-    onDuty: (result, reason) => {
-      const detail = { result, reason };
-      globalThis.__kairosLastDuty = detail;
-      globalThis.dispatchEvent(
-        new CustomEvent("kairos-duty", { detail }),
-      );
-    },
-    onError: (err) => {
-      console.warn("[kairos] network duty:", err);
-      globalThis.dispatchEvent(
-        new CustomEvent("kairos-duty-error", {
-          detail: err instanceof Error ? err.message : String(err),
-        }),
-      );
-    },
-  });
-  return globalThis.__kairosSiteDutyStop;
+  // Backward-compatible entry point: callers receive the coordinated watcher,
+  // so an older Kairos integration cannot create a Kairos-only duplicate.
+  return ensureSiteDualDuty();
 }
 
+/** Start both public-good watchers once on the Kairos site. */
+export { ensureSiteDualDuty };
+export { describePublicGood, KAIROS_PUBLIC_GOOD, PUBLIC_GOODS_PROTOCOL };
+
 export function mountTelemetryPage() {
+  // Soft navigation reuses this module but replaces the telemetry DOM. Reset
+  // DOM-scoped signatures so an unchanged contract snapshot still paints into
+  // the newly mounted page.
+  lastRosterRenderSignature = "";
+  lastMetricsRenderSignature = "";
+  lastSealedRenderSignature = "";
+  lastSealWitnessRenderSignature = "";
+  renderedWitnessIds.clear();
+  stableKairosRoster.clear();
+  missingKairosRosterReads.clear();
   return runTelemetryUi();
 }
 
@@ -335,6 +418,8 @@ export {
   EXAMPLE_STAMP_CONTENT_HASH,
   EXAMPLE_STAMP_NONCE,
 } from "./network-duty.js";
+
+export { watchTycheDuty, resolveTycheTimeAnchor, openRound } from "./tyche-client/tyche-api.js";
 
 export {
   fetchOtpNetworkClock,

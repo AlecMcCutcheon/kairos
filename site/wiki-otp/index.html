@@ -2,34 +2,52 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <link rel="shortcut icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>OTP · Wiki · Kairos</title>
-    <link rel="stylesheet" href="styles.css?v=20260730ac" />
+    <link rel="stylesheet" href="styles.css?v=20260731ar" />
+
+    <!-- SEO-BEGIN -->
+    <meta name="description" content="Understand Kairos network OTP: confidence-aware time bins, independent verification Gets, and why local clocks are not the oracle." />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0c2218" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Kairos · verifiable time for Freenet" />
+    <meta property="og:title" content="OTP · Wiki · Kairos" />
+    <meta property="og:description" content="Understand Kairos network OTP: confidence-aware time bins, independent verification Gets, and why local clocks are not the oracle." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OTP · Wiki · Kairos" />
+    <meta name="twitter:description" content="Understand Kairos network OTP: confidence-aware time bins, independent verification Gets, and why local clocks are not the oracle." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","name":"OTP · Wiki · Kairos","description":"Understand Kairos network OTP: confidence-aware time bins, independent verification Gets, and why local clocks are not the oracle.","isPartOf":{"@type":"WebSite","name":"Kairos · verifiable time for Freenet"},"headline":"OTP · Wiki · Kairos"}</script>
+    <!-- Canonical, og:url, og:image, and Twitter image are intentionally omitted until this site has a stable public origin; the current Freenet gateway URL is node-local. -->
+    <!-- SEO-END -->
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <a class="brand" href="./"><img class="brand-mark" src="kairos-hourglass.svg?v=20260731ar" alt="" aria-hidden="true" /> <span class="brand-name">Kairos</span><span class="brand-suffix">time</span></a>
       <nav class="nav" aria-label="Primary">
-        <a href="telemetry.html">Telemetry</a>
-        <a href="wiki.html">Wiki</a>
-        <a href="use-cases.html">Use cases</a>
-        <a href="otp.html">OTP</a>
-        <a href="schema.html">Schema</a>
+        <a href="./">Home</a>
+        <a href="telemetry">Telemetry</a>
+        <a href="wiki">Wiki</a>
+        <a href="use-cases">Use cases</a>
+        <a href="otp">OTP</a>
+        <a href="schema">Schema</a>
       </nav>
     </header>
 
     <div class="wiki-layout">
       <nav class="wiki-nav" aria-label="Wiki">
         <p class="wiki-nav-title">Wiki</p>
-        <a href="wiki.html">Overview</a>
-        <a href="wiki-pulses-stamps.html">Pulses vs stamps</a>
-        <a href="wiki-gets.html">Get &amp; Subscribe</a>
-        <a href="wiki-api.html">API surfaces</a>
-        <a href="wiki-notary.html">Notary receipts</a>
-        <a href="wiki-identity.html">Identity &amp; age</a>
-        <a href="wiki-security.html">Trust &amp; security</a>
-        <a href="wiki-otp.html" aria-current="page">OTP</a>
-        <a href="wiki-hosting.html">Hosting</a>
+        <a href="wiki">Overview</a>
+        <a href="wiki-pulses-stamps">Pulses vs stamps</a>
+        <a href="wiki-gets">Get &amp; Subscribe</a>
+        <a href="wiki-api">API surfaces</a>
+        <a href="wiki-notary">Notary receipts</a>
+        <a href="wiki-identity">Identity &amp; age</a>
+        <a href="wiki-security">Trust &amp; security</a>
+        <a href="wiki-otp" aria-current="page">OTP</a>
+        <a href="wiki-hosting">Hosting</a>
       </nav>
 
       <main class="wiki-article prose">
@@ -41,7 +59,7 @@
           than ~3 bins. Still <strong>early MFA</strong> — lead-by-example
           hardening, not a finished adversary model. Digits are
           <strong>TOTP</strong> over that tip. Limits:
-          <a href="wiki-security.html">Trust &amp; security</a>.
+          <a href="wiki-security">Trust &amp; security</a>.
         </p>
 
         <h2>Algorithm</h2>
@@ -113,7 +131,7 @@ K           =  shared secret
 
         <h2>Lab UI</h2>
         <p>
-          The <a href="otp.html">OTP</a> page shows authenticator (Subscribe +
+          The <a href="otp">OTP</a> page shows authenticator (Subscribe +
           code) beside verify (separate Get). Not production MFA by itself —
           the shared secret must stay secret; tip hardening is example-grade
           resistance to casual Sybil pulse floods, not a security guarantee.
@@ -132,6 +150,6 @@ K           =  shared secret
     <footer class="site-footer">
       <strong>Kairos</strong> wiki · OTP
     </footer>
-    <script type="module" src="app.js?v=20260730ac"></script>
+    <script type="module" src="app.js?v=20260731ar"></script>
   </body>
 </html>

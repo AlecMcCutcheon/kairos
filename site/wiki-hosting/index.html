@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <link rel="shortcut icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hosting · Wiki · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260731ar" />
+
+    <!-- SEO-BEGIN -->
+    <meta name="description" content="Learn how Kairos hosting works: soft-hosting a public-good time site while apps contribute pulses and read shared contract state." />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0c2218" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Kairos · verifiable time for Freenet" />
+    <meta property="og:title" content="Hosting · Wiki · Kairos" />
+    <meta property="og:description" content="Learn how Kairos hosting works: soft-hosting a public-good time site while apps contribute pulses and read shared contract state." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Hosting · Wiki · Kairos" />
+    <meta name="twitter:description" content="Learn how Kairos hosting works: soft-hosting a public-good time site while apps contribute pulses and read shared contract state." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","name":"Hosting · Wiki · Kairos","description":"Learn how Kairos hosting works: soft-hosting a public-good time site while apps contribute pulses and read shared contract state.","isPartOf":{"@type":"WebSite","name":"Kairos · verifiable time for Freenet"},"headline":"Hosting · Wiki · Kairos"}</script>
+    <!-- Canonical, og:url, og:image, and Twitter image are intentionally omitted until this site has a stable public origin; the current Freenet gateway URL is node-local. -->
+    <!-- SEO-END -->
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./"><img class="brand-mark" src="kairos-hourglass.svg?v=20260731ar" alt="" aria-hidden="true" /> <span class="brand-name">Kairos</span><span class="brand-suffix">time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="./">Home</a>
+        <a href="telemetry">Telemetry</a>
+        <a href="wiki">Wiki</a>
+        <a href="use-cases">Use cases</a>
+        <a href="otp">OTP</a>
+        <a href="schema">Schema</a>
+      </nav>
+    </header>
+
+    <div class="wiki-layout">
+      <nav class="wiki-nav" aria-label="Wiki">
+        <p class="wiki-nav-title">Wiki</p>
+        <a href="wiki">Overview</a>
+        <a href="wiki-pulses-stamps">Pulses vs stamps</a>
+        <a href="wiki-gets">Get &amp; Subscribe</a>
+        <a href="wiki-api">API surfaces</a>
+        <a href="wiki-notary">Notary receipts</a>
+        <a href="wiki-identity">Identity &amp; age</a>
+        <a href="wiki-security">Trust &amp; security</a>
+        <a href="wiki-otp">OTP</a>
+        <a href="wiki-hosting" aria-current="page">Hosting</a>
+      </nav>
+
+      <main class="wiki-article prose">
+        <h1>Hosting / public goods</h1>
+        <p class="lede">
+          Freenet does not auto-keep unrelated contracts alive. Reciprocity is
+          <strong>client policy</strong>: apps that need time should soft-Get /
+          Subscribe (and often pulse) Kairos while they run.
+        </p>
+
+        <h2>While browsing this site</h2>
+        <p>
+          <a href="telemetry">Telemetry</a> and the
+          <a href="otp">OTP</a> lab start bounded duty while open, so the
+          oracle stays warm on your node. Telemetry also auto-observes
+          <code>open_stamp</code> requests once your key is age-eligible (~1h),
+          so seals can form when enough peers help (≥5). Reads remain
+          read-only; the page no longer exposes a manual Pulse control.
+        </p>
+
+        <h2>Subscribe sharing</h2>
+        <p>
+          A Subscribe on the local gateway means authenticators and other apps
+          on that node can receive <code>UpdateNotification</code> when the
+          pulse map or seals change — more efficient than each client polling
+          Gets. See <a href="wiki-gets">Get &amp; Subscribe</a>.
+        </p>
+
+        <h2>While using other Freenet apps</h2>
+        <p>
+          Kairos really starts to matter when other Freenet apps and services
+          <strong>embed the API</strong> (Get / Subscribe / network duty) in
+          their frameworks so that people using those apps automatically
+          pulse and help observe — contributing to this shared good (and to
+          other public-goods contracts) without a separate chore. The mesh
+          only keeps these services possible if maintainers put time and
+          energy into wiring them in.
+        </p>
+        <p>
+          Apps such as GitForge can soft-host Kairos whenever open. Kairos
+          clients should soft-host a small public-goods set in return (Kairos
+          itself, optionally ForgeRegistry, this website). Exact keys are filled
+          when published — see repo
+          <code>docs/public-goods.md</code>. Limits and trust:
+          <a href="wiki-security">Trust &amp; security</a>.
+        </p>
+
+        <h2>Sister public good: Tyche</h2>
+        <p>
+          <strong>Tyche</strong> is the auditable-randomness public good that
+          shares this public-goods model. This site runs bounded
+          <code>watchTycheDuty()</code> beside its own
+          <code>watchNetworkDuty()</code> — two independent witnesses, each
+          using the service's own identity and delegate, never merged. Tyche's
+          site mirrors the arrangement for Kairos and may use Kairos's aged,
+          reputation-weighted pulse median as a labeled client-side time hint.
+          Both services publish the standardized
+          <code>freenet.public-good.v1</code> manifest (service-owned identity,
+          key held by the service delegate, foreground
+          <code>EnsureIdentity</code> only); see repo
+          <code>docs/public-goods.md</code>.
+        </p>
+
+        <h2>What WASM cannot do</h2>
+        <p>
+          The time contract cannot “call back” to load GitForge. Only the
+          browser app, CLI, or a local delegate can subscribe to multiple keys.
+        </p>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> wiki · hosting
+    </footer>
+    <script type="module" src="app.js?v=20260731ar"></script>
+  </body>
+</html>

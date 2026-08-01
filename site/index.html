@@ -2,44 +2,93 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <link rel="shortcut icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Kairos</title>
-    <meta
-      name="description"
-      content="Kairos — verifiable time for Freenet. Peers witness the clock; apps share one confidence-bound timestamp."
-    />
-    <link rel="stylesheet" href="styles.css?v=20260730ac" />
+    <link rel="stylesheet" href="styles.css?v=20260731ar" />
+
+    <!-- SEO-BEGIN -->
+    <meta name="description" content="Kairos provides peer-witnessed time for Freenet: a shared timestamp with an explicit confidence interval that apps can inspect and Get." />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0c2218" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Kairos · verifiable time for Freenet" />
+    <meta property="og:title" content="Kairos" />
+    <meta property="og:description" content="Kairos provides peer-witnessed time for Freenet: a shared timestamp with an explicit confidence interval that apps can inspect and Get." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Kairos" />
+    <meta name="twitter:description" content="Kairos provides peer-witnessed time for Freenet: a shared timestamp with an explicit confidence interval that apps can inspect and Get." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Kairos","description":"Kairos provides peer-witnessed time for Freenet: a shared timestamp with an explicit confidence interval that apps can inspect and Get.","isPartOf":{"@type":"WebSite","name":"Kairos · verifiable time for Freenet"},"about":{"@type":"SoftwareApplication","name":"Kairos","applicationCategory":"DeveloperApplication","operatingSystem":"Freenet","description":"Peer-witnessed time for Freenet apps: shared timestamps with an explicit confidence-bound interval and public transcript.","isAccessibleForFree":true}}</script>
+    <!-- Canonical, og:url, og:image, and Twitter image are intentionally omitted until this site has a stable public origin; the current Freenet gateway URL is node-local. -->
+    <!-- SEO-END -->
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <a class="brand" href="./"><img class="brand-mark" src="kairos-hourglass.svg?v=20260731ar" alt="" aria-hidden="true" /> <span class="brand-name">Kairos</span><span class="brand-suffix">time</span></a>
       <nav class="nav" aria-label="Primary">
-        <a href="telemetry.html">Telemetry</a>
-        <a href="wiki.html">Wiki</a>
-        <a href="use-cases.html">Use cases</a>
-        <a href="otp.html">OTP</a>
-        <a href="schema.html">Schema</a>
+        <a href="./">Home</a>
+        <a href="telemetry">Telemetry</a>
+        <a href="wiki">Wiki</a>
+        <a href="use-cases">Use cases</a>
+        <a href="otp">OTP</a>
+        <a href="schema">Schema</a>
       </nav>
     </header>
 
-    <main class="hero">
+    <main class="hero home-page">
       <h1 class="hero-brand">Kairos<em>.</em></h1>
+      <p class="hero-kicker">KAI-ros · verifiable time</p>
       <p class="hero-line">
         Peers sign what time they see. The network seals a median with an
         explicit error interval — shared time for Freenet apps to Get, not a
         protocol that syncs your laptop clock.
       </p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="telemetry.html">Watch the oracle</a>
-        <a class="btn btn-ghost" href="wiki.html">How it works</a>
+        <a class="btn btn-primary" href="telemetry">Watch the oracle</a>
+        <a class="btn btn-ghost" href="wiki">How it works</a>
       </div>
+
+      <section class="home-overview" aria-labelledby="home-overview-title">
+        <div class="home-overview-intro">
+          <p class="eyebrow">One contract · two surfaces</p>
+          <h2 id="home-overview-title">A shared clock you can inspect.</h2>
+          <p>Use the moving pulse map for a live network view, or ask aged peers to seal a timestamp with an explicit interval and public witness transcript.</p>
+        </div>
+        <div class="home-card-grid">
+          <a class="home-card" href="telemetry">
+            <span class="home-card-kicker">Live map</span>
+            <strong>Watch the witnesses</strong>
+            <span>See the pulse median, agreement bars, identity age, and sealed activity as the site runs.</span>
+            <b class="home-card-arrow" aria-hidden="true">↗</b>
+          </a>
+          <a class="home-card" href="wiki-pulses-stamps">
+            <span class="home-card-kicker">Authoritative surface</span>
+            <strong>Understand pulses &amp; stamps</strong>
+            <span>Learn when a keep-alive observation becomes a portable, auditable time receipt.</span>
+            <b class="home-card-arrow" aria-hidden="true">↗</b>
+          </a>
+          <a class="home-card" href="otp">
+            <span class="home-card-kicker">Application lab</span>
+            <strong>Try network OTP</strong>
+            <span>Generate and verify codes against Kairos network time instead of a device clock.</span>
+            <b class="home-card-arrow" aria-hidden="true">↗</b>
+          </a>
+          <a class="home-card" href="wiki-api">
+            <span class="home-card-kicker">For builders</span>
+            <strong>Integrate the oracle</strong>
+            <span>Get the state shape, write surfaces, identity delegate, and network-duty boundary.</span>
+            <b class="home-card-arrow" aria-hidden="true">↗</b>
+          </a>
+        </div>
+      </section>
     </main>
 
     <footer class="site-footer">
       <strong>Kairos</strong> — Freenet public-goods time. Soft-hosted by apps
       that care (GitForge and others). Schema:
-      <a href="schema.html">schema</a>
+      <a href="schema">schema</a>
     </footer>
-    <script type="module" src="app.js?v=20260730ac"></script>
+    <script type="module" src="app.js?v=20260731ar"></script>
   </body>
 </html>

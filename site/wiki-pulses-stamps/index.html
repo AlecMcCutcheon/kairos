@@ -2,34 +2,52 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <link rel="shortcut icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Pulses vs stamps · Wiki · Kairos</title>
-    <link rel="stylesheet" href="styles.css?v=20260730ac" />
+    <link rel="stylesheet" href="styles.css?v=20260731ar" />
+
+    <!-- SEO-BEGIN -->
+    <meta name="description" content="See the difference between Kairos pulses and authoritative stamps: keep-alive observations versus portable, auditable time receipts." />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0c2218" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Kairos · verifiable time for Freenet" />
+    <meta property="og:title" content="Pulses vs stamps · Wiki · Kairos" />
+    <meta property="og:description" content="See the difference between Kairos pulses and authoritative stamps: keep-alive observations versus portable, auditable time receipts." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Pulses vs stamps · Wiki · Kairos" />
+    <meta name="twitter:description" content="See the difference between Kairos pulses and authoritative stamps: keep-alive observations versus portable, auditable time receipts." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","name":"Pulses vs stamps · Wiki · Kairos","description":"See the difference between Kairos pulses and authoritative stamps: keep-alive observations versus portable, auditable time receipts.","isPartOf":{"@type":"WebSite","name":"Kairos · verifiable time for Freenet"},"headline":"Pulses vs stamps · Wiki · Kairos"}</script>
+    <!-- Canonical, og:url, og:image, and Twitter image are intentionally omitted until this site has a stable public origin; the current Freenet gateway URL is node-local. -->
+    <!-- SEO-END -->
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <a class="brand" href="./"><img class="brand-mark" src="kairos-hourglass.svg?v=20260731ar" alt="" aria-hidden="true" /> <span class="brand-name">Kairos</span><span class="brand-suffix">time</span></a>
       <nav class="nav" aria-label="Primary">
-        <a href="telemetry.html">Telemetry</a>
-        <a href="wiki.html">Wiki</a>
-        <a href="use-cases.html">Use cases</a>
-        <a href="otp.html">OTP</a>
-        <a href="schema.html">Schema</a>
+        <a href="./">Home</a>
+        <a href="telemetry">Telemetry</a>
+        <a href="wiki">Wiki</a>
+        <a href="use-cases">Use cases</a>
+        <a href="otp">OTP</a>
+        <a href="schema">Schema</a>
       </nav>
     </header>
 
     <div class="wiki-layout">
       <nav class="wiki-nav" aria-label="Wiki">
         <p class="wiki-nav-title">Wiki</p>
-        <a href="wiki.html">Overview</a>
-        <a href="wiki-pulses-stamps.html" aria-current="page">Pulses vs stamps</a>
-        <a href="wiki-gets.html">Get &amp; Subscribe</a>
-        <a href="wiki-api.html">API surfaces</a>
-        <a href="wiki-notary.html">Notary receipts</a>
-        <a href="wiki-identity.html">Identity &amp; age</a>
-        <a href="wiki-security.html">Trust &amp; security</a>
-        <a href="wiki-otp.html">OTP</a>
-        <a href="wiki-hosting.html">Hosting</a>
+        <a href="wiki">Overview</a>
+        <a href="wiki-pulses-stamps" aria-current="page">Pulses vs stamps</a>
+        <a href="wiki-gets">Get &amp; Subscribe</a>
+        <a href="wiki-api">API surfaces</a>
+        <a href="wiki-notary">Notary receipts</a>
+        <a href="wiki-identity">Identity &amp; age</a>
+        <a href="wiki-security">Trust &amp; security</a>
+        <a href="wiki-otp">OTP</a>
+        <a href="wiki-hosting">Hosting</a>
       </nav>
 
       <main class="wiki-article prose">
@@ -56,9 +74,11 @@
         </ul>
         <p>
           Telemetry’s “Median pulse” is the median of those live readings
-          (client-side). Useful telemetry. <strong>Sybil-floodable</strong> if
-          treated as truth — see
-          <a href="wiki-security.html">Trust &amp; security</a>. The OTP lab
+          (client-side). The public roster remains visible even when an
+          individual pulse becomes stale; its bar simply reports no recent
+          reading. Useful telemetry. <strong>Sybil-floodable</strong> if treated
+          as truth — see
+          <a href="wiki-security">Trust &amp; security</a>. The OTP lab
           uses a hardened tip (aged + reputation-weighted), not this raw
           median. Witness bars: longer = closer to the telemetry median.
         </p>
@@ -115,7 +135,7 @@
           <code>[earliest, latest]</code> bound how wide that agreement was at
           seal time. Apps later widen error with local Get staleness. That is
           the notarize surface — “this hash was sealed in this window by these
-          keys” — see <a href="wiki-notary.html">Notary receipts</a>.
+          keys” — see <a href="wiki-notary">Notary receipts</a>.
         </p>
 
         <h2>Who opens stamps?</h2>
@@ -132,7 +152,7 @@
         <ul>
           <li>
             <strong>Continuous OTP / live UI</strong> — hardened pulse tip
-            (<a href="wiki-otp.html">OTP</a>), not raw public median. Seals are
+            (<a href="wiki-otp">OTP</a>), not raw public median. Seals are
             discrete notarize events; they are a poor ticking second-hand unless
             an app opens a new stamp every epoch (heavy, needs ≥5 peers each
             time).
@@ -151,7 +171,7 @@
           Trust model in one line: <strong>5+ different aged keys</strong> with
           seal-history reputation, each signing once per request — not one peer
           repeating itself, and not the live pulse majority. Details:
-          <a href="wiki-security.html">Trust &amp; security</a>.
+          <a href="wiki-security">Trust &amp; security</a>.
         </div>
       </main>
     </div>
@@ -159,6 +179,6 @@
     <footer class="site-footer">
       <strong>Kairos</strong> wiki · pulses vs stamps
     </footer>
-    <script type="module" src="app.js?v=20260730ac"></script>
+    <script type="module" src="app.js?v=20260731ar"></script>
   </body>
 </html>

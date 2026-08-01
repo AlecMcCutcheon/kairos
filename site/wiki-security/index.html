@@ -2,34 +2,52 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <link rel="shortcut icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Trust &amp; security · Wiki · Kairos</title>
-    <link rel="stylesheet" href="styles.css?v=20260730ac" />
+    <link rel="stylesheet" href="styles.css?v=20260731ar" />
+
+    <!-- SEO-BEGIN -->
+    <meta name="description" content="Read the Kairos trust and security notes: witness age, quorum, confidence intervals, transcript accountability, and honest limits." />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0c2218" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Kairos · verifiable time for Freenet" />
+    <meta property="og:title" content="Trust &amp; security · Wiki · Kairos" />
+    <meta property="og:description" content="Read the Kairos trust and security notes: witness age, quorum, confidence intervals, transcript accountability, and honest limits." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Trust &amp; security · Wiki · Kairos" />
+    <meta name="twitter:description" content="Read the Kairos trust and security notes: witness age, quorum, confidence intervals, transcript accountability, and honest limits." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","name":"Trust & security · Wiki · Kairos","description":"Read the Kairos trust and security notes: witness age, quorum, confidence intervals, transcript accountability, and honest limits.","isPartOf":{"@type":"WebSite","name":"Kairos · verifiable time for Freenet"},"headline":"Trust & security · Wiki · Kairos"}</script>
+    <!-- Canonical, og:url, og:image, and Twitter image are intentionally omitted until this site has a stable public origin; the current Freenet gateway URL is node-local. -->
+    <!-- SEO-END -->
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <a class="brand" href="./"><img class="brand-mark" src="kairos-hourglass.svg?v=20260731ar" alt="" aria-hidden="true" /> <span class="brand-name">Kairos</span><span class="brand-suffix">time</span></a>
       <nav class="nav" aria-label="Primary">
-        <a href="telemetry.html">Telemetry</a>
-        <a href="wiki.html">Wiki</a>
-        <a href="use-cases.html">Use cases</a>
-        <a href="otp.html">OTP</a>
-        <a href="schema.html">Schema</a>
+        <a href="./">Home</a>
+        <a href="telemetry">Telemetry</a>
+        <a href="wiki">Wiki</a>
+        <a href="use-cases">Use cases</a>
+        <a href="otp">OTP</a>
+        <a href="schema">Schema</a>
       </nav>
     </header>
 
     <div class="wiki-layout">
       <nav class="wiki-nav" aria-label="Wiki">
         <p class="wiki-nav-title">Wiki</p>
-        <a href="wiki.html">Overview</a>
-        <a href="wiki-pulses-stamps.html">Pulses vs stamps</a>
-        <a href="wiki-gets.html">Get &amp; Subscribe</a>
-        <a href="wiki-api.html">API surfaces</a>
-        <a href="wiki-notary.html">Notary receipts</a>
-        <a href="wiki-identity.html">Identity &amp; age</a>
-        <a href="wiki-security.html" aria-current="page">Trust &amp; security</a>
-        <a href="wiki-otp.html">OTP</a>
-        <a href="wiki-hosting.html">Hosting</a>
+        <a href="wiki">Overview</a>
+        <a href="wiki-pulses-stamps">Pulses vs stamps</a>
+        <a href="wiki-gets">Get &amp; Subscribe</a>
+        <a href="wiki-api">API surfaces</a>
+        <a href="wiki-notary">Notary receipts</a>
+        <a href="wiki-identity">Identity &amp; age</a>
+        <a href="wiki-security" aria-current="page">Trust &amp; security</a>
+        <a href="wiki-otp">OTP</a>
+        <a href="wiki-hosting">Hosting</a>
       </nav>
 
       <main class="wiki-article prose">
@@ -50,7 +68,7 @@
             <code>[earliest, latest]</code> +
             <code>transcript_digest</code> +
             <code>witness_ids</code> are Get-able and portable (see
-            <a href="wiki-notary.html">Notary receipts</a>).
+            <a href="wiki-notary">Notary receipts</a>).
           </li>
           <li>
             <strong>Age gate</strong> — stamp observes require ~1h on the
@@ -96,7 +114,7 @@
             jump hold). Better than raw median, still not finished MFA:
             shared secret must stay secret; young networks fall back to
             bootstrap; an adversary who can age many keys still matters.
-            See <a href="wiki-otp.html">OTP</a>.
+            See <a href="wiki-otp">OTP</a>.
           </li>
           <li>
             <strong>Young / thin networks</strong> — reputation gate waits
@@ -167,8 +185,20 @@
           <strong>time and energy</strong> into maintaining them — reciprocity
           is client policy, not WASM magic. Kairos should soft-host a small
           public-goods set in return (see
-          <a href="wiki-hosting.html">Hosting</a> and repo
+          <a href="wiki-hosting">Hosting</a> and repo
           <code>docs/public-goods.md</code>).
+        </p>
+        <p>
+          The sibling public good is <strong>Tyche</strong> (auditable
+          randomness). This site runs bounded <code>watchTycheDuty()</code>
+          beside its own duty, and Tyche's site mirrors that for Kairos — each
+          using the service's own identity, so the two trust domains never
+          merge. Both publish the standardized
+          <code>freenet.public-good.v1</code> manifest (service-owned identity,
+          key held by the service delegate, foreground
+          <code>EnsureIdentity</code> only); see repo
+          <code>docs/public-goods.md</code> and
+          <a href="wiki-hosting">Hosting</a>.
         </p>
         <div class="panel">
           Alone on one tab, the network stays thin. Embedded across Freenet
@@ -178,9 +208,9 @@
 
         <p>
           Field reference:
-          <a href="schema.html">Schema</a> /
+          <a href="schema">Schema</a> /
           <code>SCHEMA.md</code>. Identity mechanics:
-          <a href="wiki-identity.html">Identity &amp; age</a>.
+          <a href="wiki-identity">Identity &amp; age</a>.
         </p>
       </main>
     </div>
@@ -188,6 +218,6 @@
     <footer class="site-footer">
       <strong>Kairos</strong> wiki · trust &amp; security
     </footer>
-    <script type="module" src="app.js?v=20260730ac"></script>
+    <script type="module" src="app.js?v=20260731ar"></script>
   </body>
 </html>

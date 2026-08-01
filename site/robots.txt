@@ -1,0 +1,4 @@
+# Kairos is currently served through a node-local Freenet gateway URL.
+# A stable public web origin is required before external crawler discovery is meaningful.
+User-agent: *
+Disallow: /

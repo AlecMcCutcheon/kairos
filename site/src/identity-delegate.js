@@ -243,17 +243,57 @@ export async function ensureKairosIdentity(onStatus) {
   }
 }
 
+/** Read-only service identity lookup. Never registers or creates an identity. */
+export async function getKairosIdentity() {
+  if (identityCache?.backend === "delegate") return identityCache;
+  if (!kairosIdentityReady()) return null;
+  try {
+    const n = nonce();
+    const pending = waitForDelegate(
+      (p) =>
+        (p.type === "Identity" || p.type === "Error") &&
+        (!p.nonce || p.nonce === n),
+      8_000,
+    );
+    await sendDelegateMessage({ type: "GetIdentity", nonce: n });
+    const res = await pending;
+    if (res.type === "Error" || !res.node_id || !res.label) return null;
+    identityCache = {
+      nodeId: res.node_id,
+      label: res.label,
+      backend: "delegate",
+      created: false,
+    };
+    return identityCache;
+  } catch {
+    return null;
+  }
+}
+
 export async function getKairosIdentitySummary(onStatus) {
   return ensureKairosIdentity(onStatus);
 }
 
-/** Prefer delegate SignPulse; fall back to local durable key. */
+function delegateFailure(operation, error) {
+  const detail = error instanceof Error ? error.message : String(error);
+  return new Error(`Kairos delegate ${operation} signing failed; refusing local fallback: ${detail}`);
+}
+
+function assertDelegateNode(operation, identity, response) {
+  if (response?.type === "Error") {
+    throw new Error(response.message || `Kairos delegate ${operation} failed`);
+  }
+  if (!response?.node_id || response.node_id !== identity.nodeId) {
+    throw new Error(`Kairos delegate ${operation} returned an unexpected identity`);
+  }
+  return response;
+}
+
+/** Use the selected backend consistently; never switch identities mid-operation. */
 export async function signPulseAuto(fields) {
+  const identity = await ensureKairosIdentity();
+  if (identity.backend !== "delegate") return localSignPulse(fields);
   try {
-    await ensureKairosIdentity();
-    if (identityCache?.backend !== "delegate") {
-      return localSignPulse(fields);
-    }
     const n = nonce();
     const pending = waitForDelegate(
       (p) =>
@@ -268,8 +308,7 @@ export async function signPulseAuto(fields) {
       monotonic_ms: fields.monotonic_ms,
       uncertainty_ms: fields.uncertainty_ms,
     });
-    const res = await pending;
-    if (res.type === "Error") throw new Error(res.message || "SignPulse failed");
+    const res = assertDelegateNode("pulse", identity, await pending);
     return {
       node_id: res.node_id,
       wall_ms: res.wall_ms,
@@ -278,17 +317,14 @@ export async function signPulseAuto(fields) {
       sig: res.sig,
     };
   } catch (err) {
-    console.warn("[kairos] SignPulse delegate failed, local fallback:", err);
-    return localSignPulse(fields);
+    throw delegateFailure("pulse", err);
   }
 }
 
 export async function signStampObserveAuto(requestId, fields) {
+  const identity = await ensureKairosIdentity();
+  if (identity.backend !== "delegate") return localSignStampObserve(requestId, fields);
   try {
-    await ensureKairosIdentity();
-    if (identityCache?.backend !== "delegate") {
-      return localSignStampObserve(requestId, fields);
-    }
     const n = nonce();
     const pending = waitForDelegate(
       (p) =>
@@ -304,10 +340,7 @@ export async function signStampObserveAuto(requestId, fields) {
       monotonic_ms: fields.monotonic_ms,
       uncertainty_ms: fields.uncertainty_ms,
     });
-    const res = await pending;
-    if (res.type === "Error") {
-      throw new Error(res.message || "SignStampObserve failed");
-    }
+    const res = assertDelegateNode("stamp observation", identity, await pending);
     return {
       node_id: res.node_id,
       wall_ms: res.wall_ms,
@@ -316,11 +349,7 @@ export async function signStampObserveAuto(requestId, fields) {
       sig: res.sig,
     };
   } catch (err) {
-    console.warn(
-      "[kairos] SignStampObserve delegate failed, local fallback:",
-      err,
-    );
-    return localSignStampObserve(requestId, fields);
+    throw delegateFailure("stamp observation", err);
   }
 }
 

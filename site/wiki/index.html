@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <link rel="shortcut icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wiki · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260731ar" />
+
+    <!-- SEO-BEGIN -->
+    <meta name="description" content="Read the Kairos wiki overview: how pulse observations become sealed, confidence-bound timestamps that Freenet apps can inspect." />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0c2218" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Kairos · verifiable time for Freenet" />
+    <meta property="og:title" content="Wiki · Kairos" />
+    <meta property="og:description" content="Read the Kairos wiki overview: how pulse observations become sealed, confidence-bound timestamps that Freenet apps can inspect." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Wiki · Kairos" />
+    <meta name="twitter:description" content="Read the Kairos wiki overview: how pulse observations become sealed, confidence-bound timestamps that Freenet apps can inspect." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","name":"Wiki · Kairos","description":"Read the Kairos wiki overview: how pulse observations become sealed, confidence-bound timestamps that Freenet apps can inspect.","isPartOf":{"@type":"WebSite","name":"Kairos · verifiable time for Freenet"},"headline":"Wiki · Kairos"}</script>
+    <!-- Canonical, og:url, og:image, and Twitter image are intentionally omitted until this site has a stable public origin; the current Freenet gateway URL is node-local. -->
+    <!-- SEO-END -->
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./"><img class="brand-mark" src="kairos-hourglass.svg?v=20260731ar" alt="" aria-hidden="true" /> <span class="brand-name">Kairos</span><span class="brand-suffix">time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="./">Home</a>
+        <a href="telemetry">Telemetry</a>
+        <a href="wiki">Wiki</a>
+        <a href="use-cases">Use cases</a>
+        <a href="otp">OTP</a>
+        <a href="schema">Schema</a>
+      </nav>
+    </header>
+
+    <div class="wiki-layout">
+      <nav class="wiki-nav" aria-label="Wiki">
+        <p class="wiki-nav-title">Wiki</p>
+        <a href="wiki" aria-current="page">Overview</a>
+        <a href="wiki-pulses-stamps">Pulses vs stamps</a>
+        <a href="wiki-gets">Get &amp; Subscribe</a>
+        <a href="wiki-api">API surfaces</a>
+        <a href="wiki-notary">Notary receipts</a>
+        <a href="wiki-identity">Identity &amp; age</a>
+        <a href="wiki-security">Trust &amp; security</a>
+        <a href="wiki-otp">OTP</a>
+        <a href="wiki-hosting">Hosting</a>
+      </nav>
+
+      <main class="wiki-article prose">
+        <h1>Kairos wiki</h1>
+        <p class="lede">
+          Verifiable <em>shared time</em> for Freenet apps — not a service that
+          syncs your laptop clock. Peers publish signed wall times; apps
+          <code>Get</code> / <code>Subscribe</code> the contract and use either
+          the live pulse map or sealed stamps, depending on the job. The Kairos
+          site also runs bounded Tyche duty beside its own duty, using separate
+          identities and trust domains so both public goods can warm together.
+        </p>
+
+        <div class="wiki-flow" aria-label="Kairos at a glance">
+          <div class="wiki-flow-step"><span class="wiki-flow-number">01</span><strong>Pulse</strong><span>Peers publish signed observations and build roster age.</span></div>
+          <span class="wiki-flow-arrow" aria-hidden="true">→</span>
+          <div class="wiki-flow-step"><span class="wiki-flow-number">02</span><strong>Seal</strong><span>Aged witnesses observe a request and bound the median.</span></div>
+          <span class="wiki-flow-arrow" aria-hidden="true">→</span>
+          <div class="wiki-flow-step"><span class="wiki-flow-number">03</span><strong>Get</strong><span>Apps read a timestamp, interval, and transcript.</span></div>
+        </div>
+
+        <h2>Two clocks, one contract</h2>
+        <ul>
+          <li>
+            <strong>Pulse map</strong> — keep-alive. Median of current pulse
+            observations. Moves when anyone pulses. Used by the
+            <a href="wiki-otp">OTP lab</a> (hardened tip — early MFA
+            surface). Never a notarize proof by itself.
+          </li>
+          <li>
+            <strong>Sealed stamps</strong> —
+            <code>open_stamp</code> + aged / reputation-eligible
+            <code>observe_stamp</code> →
+            <code>sealed_stamps[hash:nonce]</code> with weighted median, error,
+            <code>[earliest, latest]</code>, transcript. Used for
+            <a href="wiki-notary">notarize</a> and anti-replay that must
+            stick.
+          </li>
+        </ul>
+        <div class="panel">
+          Kairos does <strong>not</strong> replace Chrony/NTP on devices. It
+          publishes Freenet state apps can Get. A Get is <strong>read-only</strong>
+          — it does not write a pulse. Honest limits:
+          <a href="wiki-security">Trust &amp; security</a>.
+        </div>
+
+        <h2>Soft time for neighboring services</h2>
+        <p>
+          Tyche may use Kairos’s aged, reputation-weighted pulse median as a
+          labeled client-side time hint for round-age displays and coordination.
+          It is deliberately a soft relationship: Tyche falls back to its
+          local clock during bootstrap, staleness, skew, or outage, and signed
+          Tyche contract observations remain authoritative for eligibility and
+          consensus.
+        </p>
+
+        <h2>What Kairos is for</h2>
+        <ul>
+          <li>
+            <strong>App clock</strong> — Get or Subscribe one network-agreed
+            time with an explicit error / belief bound.
+          </li>
+          <li>
+            <strong>Notarize</strong> — seal a content hash into
+            <code>[earliest, latest]</code> with a witness transcript.
+          </li>
+          <li>
+            <strong>Epoch bins / OTP</strong> — TOTP over pulse-map median
+            (lab) or sealed time (production notarize paths).
+          </li>
+        </ul>
+
+        <h2>Read next</h2>
+        <ol>
+          <li>
+            <a href="wiki-pulses-stamps">Pulses vs stamps</a> — why
+            Telemetry’s median moves while sealed count can stay
+            <code>0</code>.
+          </li>
+          <li>
+            <a href="wiki-gets">Get &amp; Subscribe</a> — full state blob,
+            read-only Gets, push via <code>UpdateNotification</code>.
+          </li>
+          <li>
+            <a href="wiki-api">API surfaces</a> — pulse, open/observe
+            stamp, identity delegate.
+          </li>
+          <li>
+            <a href="wiki-notary">Notary receipts</a> — portable proof
+            JSON.
+          </li>
+          <li>
+            <a href="wiki-identity">Identity &amp; age</a> — keys, age
+            gate, seal-history reputation.
+          </li>
+          <li>
+            <a href="wiki-security">Trust &amp; security</a> — where
+            strength is and where it isn’t.
+          </li>
+          <li>
+            <a href="wiki-otp">OTP</a> — TOTP + Subscribe authenticator
+            lab.
+          </li>
+        </ol>
+
+        <h2>Live labs on this site</h2>
+        <ul>
+          <li>
+            <a href="telemetry">Telemetry</a> — a stable public roster,
+            pulse markers, sealed list, and quiet automatic witness duty.
+          </li>
+          <li>
+            <a href="otp">OTP</a> — authenticator Subscribes; verify Gets
+            independently.
+          </li>
+          <li>
+            <a href="schema">Schema</a> — field reference (also
+            <code>SCHEMA.md</code> in the repo).
+          </li>
+        </ul>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> wiki · verifiable time for Freenet
+    </footer>
+    <script type="module" src="app.js?v=20260731ar"></script>
+  </body>
+</html>

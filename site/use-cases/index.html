@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <link rel="shortcut icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Use cases · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260731ar" />
+
+    <!-- SEO-BEGIN -->
+    <meta name="description" content="Explore Kairos use cases for Freenet: network OTP, release stamps, cooldowns, ordering assists, schedules, and auditable disclosures." />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0c2218" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Kairos · verifiable time for Freenet" />
+    <meta property="og:title" content="Use cases · Kairos" />
+    <meta property="og:description" content="Explore Kairos use cases for Freenet: network OTP, release stamps, cooldowns, ordering assists, schedules, and auditable disclosures." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Use cases · Kairos" />
+    <meta name="twitter:description" content="Explore Kairos use cases for Freenet: network OTP, release stamps, cooldowns, ordering assists, schedules, and auditable disclosures." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","name":"Use cases · Kairos","description":"Explore Kairos use cases for Freenet: network OTP, release stamps, cooldowns, ordering assists, schedules, and auditable disclosures.","isPartOf":{"@type":"WebSite","name":"Kairos · verifiable time for Freenet"},"headline":"Use cases · Kairos"}</script>
+    <!-- Canonical, og:url, og:image, and Twitter image are intentionally omitted until this site has a stable public origin; the current Freenet gateway URL is node-local. -->
+    <!-- SEO-END -->
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./"><img class="brand-mark" src="kairos-hourglass.svg?v=20260731ar" alt="" aria-hidden="true" /> <span class="brand-name">Kairos</span><span class="brand-suffix">time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="./">Home</a>
+        <a href="telemetry">Telemetry</a>
+        <a href="wiki">Wiki</a>
+        <a href="use-cases">Use cases</a>
+        <a href="otp">OTP</a>
+        <a href="schema">Schema</a>
+      </nav>
+    </header>
+
+    <main class="section prose">
+      <h1>Use cases</h1>
+      <p class="lede">
+        Anything that needs “roughly when, agreed by peers” instead of “trust
+        this server’s clock.”
+      </p>
+
+      <h2>One-time codes</h2>
+      <p>
+        TOTP over Kairos pulse-map median: network <code>t</code> from
+        Subscribe/Get, σ from confidence + staleness, digits from 30s bins.
+        Verify with an independent Get. See
+        <a href="otp">OTP</a> /
+        <a href="wiki-otp">OTP wiki</a>.
+      </p>
+
+      <h2>Git / forge activity</h2>
+      <p>
+        Stamp tip publishes, registry registrations, or release tags with a
+        Kairos seal so “before / after” is peer-witnessed, not publisher-claimed
+        alone. Soft-host Kairos while browsing (see
+        <a href="wiki-hosting">Hosting</a>).
+      </p>
+
+      <h2>Rate limits &amp; cooldowns</h2>
+      <p>
+        Contracts that say “once per hour” can key off sealed time rather than
+        each peer’s local clock (which users can wind back).
+      </p>
+
+      <h2>CRDT / chat ordering assists</h2>
+      <p>
+        Logical clocks stay primary for causality. Kairos helps when you also
+        want a human-facing “sent around 14:02 ± 200&nbsp;ms” without a central
+        logger.
+      </p>
+
+      <h2>Notifications &amp; schedules</h2>
+      <p>
+        “Remind after T” and “poll after T” in decentralized apps — using
+        confidence-aware deadlines so early/late nodes don’t thrash.
+      </p>
+
+      <h2>Audit &amp; disclosure</h2>
+      <p>
+        Seal a document hash when disclosed. Later anyone Gets the sealed stamp
+        and checks the interval (<code>earliest_ms</code>…
+        <code>latest_ms</code>), witness set, and transcript digest — Freenet
+        as the existence surface. Export a
+        <a href="wiki-notary">notary receipt</a> from a sealed Get.
+      </p>
+    </main>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> · more ideas welcome as the oracle goes live
+    </footer>
+    <script type="module" src="app.js?v=20260731ar"></script>
+  </body>
+</html>

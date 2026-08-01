@@ -6,7 +6,7 @@ import {
   formatConfidence,
   buildNotaryReceipt,
   effectiveInterval,
-} from "../app.js?v=20260730j";
+} from "../app.js?v=20260731ar";
 
 /** Mount Demo oracle UI. Returns cleanup. */
 export function mountDemoPage() {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The gateway URL is local to a Freenet node; replace this base with a stable public origin if one is introduced. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/telemetry</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/otp</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/schema</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/use-cases</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/wiki</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/wiki-api</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/wiki-gets</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/wiki-hosting</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/wiki-identity</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/wiki-notary</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/wiki-otp</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/wiki-pulses-stamps</loc></url>
+  <url><loc>http://127.0.0.1:7509/v1/contract/web/DWA62j25yachmcDhwrax7mGfUoFp8u68LpPfxBmLKYcZ/wiki-security</loc></url>
+</urlset>

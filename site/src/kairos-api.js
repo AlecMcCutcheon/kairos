@@ -16,6 +16,9 @@ import {
   ensureKairosIdentity,
   getKairosIdentitySummary,
 } from "./identity-delegate.js";
+import { gateOtpPulses } from "./otp-tip.js";
+// Re-exported so otp-network-clock keeps importing the guard from here.
+export { OTP_MAX_TIP_JUMP_MS } from "./otp-tip.js";
 
 const EMPTY_STATE = JSON.stringify({
   schema_version: 2,
@@ -33,10 +36,49 @@ const MIN_NETWORK_SEALS_FOR_REP = 3;
 const AGE_RAMP_MS = 7 * 24 * 3_600_000;
 /** Prefer this many trusted pulses for OTP; cold-start allows 1. */
 const MIN_OTP_TRUSTED = 1;
-/** Ignore tip jumps larger than this vs last accepted tip (3×30s bins). */
-export const OTP_MAX_TIP_JUMP_MS = 90_000;
-/** Telemetry/OTP: ignore pulse rows this far behind the freshest wall_ms. */
-const MAX_PULSE_STALE_MS = 15 * 60_000;
+/**
+ * Pulse-map freshness for Telemetry.
+ * Hide when older than HIDE vs local now; once hidden, stay out until that
+ * key pulses again with a newer wall_ms (and is within SHOW). Stops tip-relative
+ * cutoff from flipping edge rows in/out and reshuffling the list.
+ */
+const PULSE_STALE_HIDE_MS = 15 * 60_000;
+const PULSE_STALE_SHOW_MS = 12 * 60_000;
+/** @type {Map<string, number>} node_id → wall_ms at hide time */
+const stickyStalePulseIds = new Map();
+
+/**
+ * Fresh pulses only — wall-clock anchored + sticky hide (no tip-relative flip).
+ */
+export function filterFreshPulseObservations(obs, nowMs = Date.now()) {
+  const list = Array.isArray(obs) ? obs : [];
+  const present = new Set(list.map((o) => o.node_id));
+  for (const id of [...stickyStalePulseIds.keys()]) {
+    if (!present.has(id)) stickyStalePulseIds.delete(id);
+  }
+  const out = [];
+  for (const o of list) {
+    if (!o?.node_id) continue;
+    const age = nowMs - Number(o.wall_ms);
+    const hiddenAt = stickyStalePulseIds.get(o.node_id);
+    if (hiddenAt != null) {
+      // OLD CODE - KEEP UNTIL CONFIRMED WORKING
+      // Re-admit whenever tip-relative cutoff moved (list freak-out).
+      // NEW CODE - TESTING: only after a newer pulse from this key
+      if (Number(o.wall_ms) > hiddenAt && age <= PULSE_STALE_SHOW_MS) {
+        stickyStalePulseIds.delete(o.node_id);
+        out.push(o);
+      }
+      continue;
+    }
+    if (age > PULSE_STALE_HIDE_MS) {
+      stickyStalePulseIds.set(o.node_id, Number(o.wall_ms));
+      continue;
+    }
+    out.push(o);
+  }
+  return out;
+}
 
 export function parseKairosState(bytes) {
   if (!bytes?.length) {
@@ -157,14 +199,10 @@ export async function observeStamp(requestId, onStatus) {
 
 export function pulseStats(state) {
   // OLD CODE - KEEP UNTIL CONFIRMED WORKING
-  // const obs = Object.values(state.pulse || {});
-  // NEW CODE - TESTING: hide abandoned/churned keys with stale wall_ms
-  let obs = Object.values(state.pulse || {});
-  if (obs.length) {
-    const newest = Math.max(...obs.map((o) => o.wall_ms));
-    const cutoff = newest - MAX_PULSE_STALE_MS;
-    obs = obs.filter((o) => o.wall_ms >= cutoff);
-  }
+  // filter vs newest tip → edge rows vanish/reappear when tip advances
+  // sort by |Δ median| → whole list reshuffles every pulse
+  // NEW CODE - TESTING: sticky wall-clock filter + stable node_id order
+  const obs = filterFreshPulseObservations(Object.values(state.pulse || {}));
   const roster = Object.values(state.roster || {});
   const eligible = roster.filter(
     (e) => e.last_seen_ms - e.first_seen_ms >= MIN_AGE_MS,
@@ -191,16 +229,17 @@ export function pulseStats(state) {
     obs.map((o) => o.uncertainty_ms).sort((a, b) => a - b),
   );
   const confidence = Math.max(unc, Math.round(1.4826 * mad), 1);
+  const observations = [...obs].sort((a, b) =>
+    String(a.node_id).localeCompare(String(b.node_id)),
+  );
   return {
-    witness_count: obs.length,
+    witness_count: observations.length,
     eligible_count: eligible,
     roster_count: roster.length,
     median_wall_ms: med,
     confidence_ms: confidence,
     median_abs_dev_ms: mad,
-    observations: obs.sort(
-      (a, b) => Math.abs(a.wall_ms - med) - Math.abs(b.wall_ms - med),
-    ),
+    observations,
     sealed_count: Object.keys(state.sealed_stamps || {}).length,
     open_count: Object.keys(state.open_stamps || {}).length,
   };
@@ -249,7 +288,9 @@ function weightedMedian(pairs) {
 export function otpTrustedPulseStats(state) {
   const roster = state.roster || {};
   const sealedCount = Object.keys(state.sealed_stamps || {}).length;
-  const all = Object.values(state.pulse || {});
+  // Only pulses near the freshest are comparable to "now"; older readings are
+  // liveness-only and must not pull the tip (relative window, clock-agnostic).
+  const all = gateOtpPulses(Object.values(state.pulse || {}));
   const trusted = [];
   for (const o of all) {
     const e = roster[o.node_id];

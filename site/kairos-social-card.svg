@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Kairos — verifiable time for Freenet</title>
+  <desc id="desc">Peers witness the clock; apps share one confidence-bound timestamp.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#06140f"/>
+      <stop offset="0.58" stop-color="#0c2218"/>
+      <stop offset="1" stop-color="#143528"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.12" cy="0" r="0.9">
+      <stop offset="0" stop-color="#3ecf8e" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#3ecf8e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" rx="28" fill="url(#bg)"/>
+  <rect width="1200" height="630" rx="28" fill="url(#glow)"/>
+  <circle cx="1030" cy="104" r="180" fill="#d4a84b" opacity=".08"/>
+  <g transform="translate(92 124)" fill="none" stroke="#d4a84b" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 10h122L82 252 18 10Z"/>
+    <path d="M18 270h122L82 28 18 270Z"/>
+    <path d="M42 36h74M42 244h74" stroke="#3ecf8e" stroke-width="8"/>
+  </g>
+  <text x="300" y="276" fill="#e8f2ec" font-family="Georgia,serif" font-size="112" font-weight="700" letter-spacing="-4">Kairos<tspan fill="#d4a84b">.</tspan></text>
+  <text x="306" y="350" fill="#8aa897" font-family="Arial,sans-serif" font-size="28" letter-spacing="3">VERIFIABLE TIME FOR FREENET</text>
+  <path d="M306 405h690" stroke="#e8f2ec" stroke-opacity=".14"/>
+  <text x="306" y="466" fill="#b9d5c3" font-family="Arial,sans-serif" font-size="25">Peer-witnessed timestamps with an explicit error interval.</text>
+</svg>

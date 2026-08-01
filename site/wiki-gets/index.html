@@ -2,34 +2,52 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <link rel="shortcut icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Get &amp; Subscribe · Wiki · Kairos</title>
-    <link rel="stylesheet" href="styles.css?v=20260730ac" />
+    <link rel="stylesheet" href="styles.css?v=20260731ar" />
+
+    <!-- SEO-BEGIN -->
+    <meta name="description" content="Understand Kairos Get and Subscribe: how apps read the current time state, follow updates, and preserve an auditable transcript." />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0c2218" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Kairos · verifiable time for Freenet" />
+    <meta property="og:title" content="Get &amp; Subscribe · Wiki · Kairos" />
+    <meta property="og:description" content="Understand Kairos Get and Subscribe: how apps read the current time state, follow updates, and preserve an auditable transcript." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Get &amp; Subscribe · Wiki · Kairos" />
+    <meta name="twitter:description" content="Understand Kairos Get and Subscribe: how apps read the current time state, follow updates, and preserve an auditable transcript." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","name":"Get & Subscribe · Wiki · Kairos","description":"Understand Kairos Get and Subscribe: how apps read the current time state, follow updates, and preserve an auditable transcript.","isPartOf":{"@type":"WebSite","name":"Kairos · verifiable time for Freenet"},"headline":"Get & Subscribe · Wiki · Kairos"}</script>
+    <!-- Canonical, og:url, og:image, and Twitter image are intentionally omitted until this site has a stable public origin; the current Freenet gateway URL is node-local. -->
+    <!-- SEO-END -->
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="index.html">Kairos <span>time</span></a>
+      <a class="brand" href="./"><img class="brand-mark" src="kairos-hourglass.svg?v=20260731ar" alt="" aria-hidden="true" /> <span class="brand-name">Kairos</span><span class="brand-suffix">time</span></a>
       <nav class="nav" aria-label="Primary">
-        <a href="telemetry.html">Telemetry</a>
-        <a href="wiki.html">Wiki</a>
-        <a href="use-cases.html">Use cases</a>
-        <a href="otp.html">OTP</a>
-        <a href="schema.html">Schema</a>
+        <a href="./">Home</a>
+        <a href="telemetry">Telemetry</a>
+        <a href="wiki">Wiki</a>
+        <a href="use-cases">Use cases</a>
+        <a href="otp">OTP</a>
+        <a href="schema">Schema</a>
       </nav>
     </header>
 
     <div class="wiki-layout">
       <nav class="wiki-nav" aria-label="Wiki">
         <p class="wiki-nav-title">Wiki</p>
-        <a href="wiki.html">Overview</a>
-        <a href="wiki-pulses-stamps.html">Pulses vs stamps</a>
-        <a href="wiki-gets.html" aria-current="page">Get &amp; Subscribe</a>
-        <a href="wiki-api.html">API surfaces</a>
-        <a href="wiki-notary.html">Notary receipts</a>
-        <a href="wiki-identity.html">Identity &amp; age</a>
-        <a href="wiki-security.html">Trust &amp; security</a>
-        <a href="wiki-otp.html">OTP</a>
-        <a href="wiki-hosting.html">Hosting</a>
+        <a href="wiki">Overview</a>
+        <a href="wiki-pulses-stamps">Pulses vs stamps</a>
+        <a href="wiki-gets" aria-current="page">Get &amp; Subscribe</a>
+        <a href="wiki-api">API surfaces</a>
+        <a href="wiki-notary">Notary receipts</a>
+        <a href="wiki-identity">Identity &amp; age</a>
+        <a href="wiki-security">Trust &amp; security</a>
+        <a href="wiki-otp">OTP</a>
+        <a href="wiki-hosting">Hosting</a>
       </nav>
 
       <main class="wiki-article prose">
@@ -53,10 +71,11 @@
 
         <h2>Get is read-only</h2>
         <p>
-          A Get does <strong>not</strong> write a pulse. Buttons or helpers
-          labeled Get / “Get pulse median” only read. Pulsing is a separate
-          <code>Update</code> (Telemetry’s “Pulse now”, or a background keep-alive
-          timer while a lab page is open).
+          A Get does <strong>not</strong> write a pulse.          Buttons or helpers labeled Get / “Get pulse median” only read.
+          Pulsing is a separate <code>Update</code>. The current site starts that
+          update automatically through bounded network duty while the page is
+          open; there is no manual Pulse button. Other apps can opt into the
+          same <code>watchNetworkDuty()</code> helper.
         </p>
 
         <h2>If there are no sealed stamps yet</h2>
@@ -69,7 +88,7 @@
           <li>
             <strong>Pulse map</strong> — latest signed wall times. Client
             telemetry median ≠ OTP tip (OTP uses a hardened subset; see
-            <a href="wiki-security.html">Trust &amp; security</a>).
+            <a href="wiki-security">Trust &amp; security</a>).
           </li>
           <li>
             <strong>Roster</strong> — who has been pulsing, how long (age),
@@ -91,7 +110,7 @@
           local apps that subscribed.
         </p>
         <p>
-          The <a href="otp.html">OTP</a> authenticator uses this path. Verify
+          The <a href="otp">OTP</a> authenticator uses this path. Verify
           still does an independent Get when you check a code.
         </p>
 
@@ -116,7 +135,7 @@
           <code>observe_stamp</code>s, Get the same contract and read
           <code>sealed_stamps["hash:nonce"]</code>. Widen error with local
           staleness after your Get (Byztime-style). Details:
-          <a href="wiki-notary.html">Notary receipts</a>.
+          <a href="wiki-notary">Notary receipts</a>.
         </p>
       </main>
     </div>
@@ -124,6 +143,6 @@
     <footer class="site-footer">
       <strong>Kairos</strong> wiki · Get &amp; Subscribe
     </footer>
-    <script type="module" src="app.js?v=20260730ac"></script>
+    <script type="module" src="app.js?v=20260731ar"></script>
   </body>
 </html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <link rel="shortcut icon" href="kairos-hourglass.svg?v=20260731ar" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Telemetry · Kairos</title>
+    <link rel="stylesheet" href="styles.css?v=20260731ar" />
+
+    <!-- SEO-BEGIN -->
+    <meta name="description" content="Watch Kairos live telemetry: pulse witnesses, agreement, identity age, sealed stamps, and the public transcript behind shared Freenet time." />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#0c2218" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Kairos · verifiable time for Freenet" />
+    <meta property="og:title" content="Telemetry · Kairos" />
+    <meta property="og:description" content="Watch Kairos live telemetry: pulse witnesses, agreement, identity age, sealed stamps, and the public transcript behind shared Freenet time." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Telemetry · Kairos" />
+    <meta name="twitter:description" content="Watch Kairos live telemetry: pulse witnesses, agreement, identity age, sealed stamps, and the public transcript behind shared Freenet time." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Telemetry · Kairos","description":"Watch Kairos live telemetry: pulse witnesses, agreement, identity age, sealed stamps, and the public transcript behind shared Freenet time.","isPartOf":{"@type":"WebSite","name":"Kairos · verifiable time for Freenet"}}</script>
+    <!-- Canonical, og:url, og:image, and Twitter image are intentionally omitted until this site has a stable public origin; the current Freenet gateway URL is node-local. -->
+    <!-- SEO-END -->
+  </head>
+  <body data-kairos-live="telemetry">
+    <header class="site-header">
+      <a class="brand" href="./"><img class="brand-mark" src="kairos-hourglass.svg?v=20260731ar" alt="" aria-hidden="true" /> <span class="brand-name">Kairos</span><span class="brand-suffix">time</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="./">Home</a>
+        <a href="telemetry">Telemetry</a>
+        <a href="wiki">Wiki</a>
+        <a href="use-cases">Use cases</a>
+        <a href="otp">OTP</a>
+        <a href="schema">Schema</a>
+      </nav>
+    </header>
+
+    <main class="section">
+      <p class="live-pill" id="mode-pill">Starting…</p>
+      <h1>Oracle telemetry</h1>
+      <p class="lede">
+        Live view of the Kairos contract. This page quietly keeps its witness
+        alive and helps eligible open stamps; the roster stays visible while
+        fresh pulse readings update around it.
+      </p>
+      <p id="live-status" class="note-warn" hidden></p>
+      <p id="identity-status" class="lede" style="font-size: 0.9rem">Automatic witness duty is active.</p>
+      <p id="last-action" hidden></p>
+
+      <h2>Pulse map (keep-alive)</h2>
+      <div class="metrics" id="metrics" aria-live="polite"></div>
+
+      <h2>Pulse witnesses</h2>
+      <p class="lede" style="font-size: 0.85rem">
+        Rows use stable identity order so updates do not reshuffle the list. Bar
+        length shows agreement with the pulse median (longer = closer). ✓ =
+        stamp-eligible age.
+      </p>
+      <ul class="witness-list" id="witnesses"></ul>
+
+      <h2>Sealed stamps (authoritative)</h2>
+      <p class="lede" style="font-size: 0.9rem">
+        Duty keeps a deterministic public example open
+        (<code>kairos.public.example.v1:v1</code>) so this lab always has a
+        request to show; it recreates the same id if pruned. Seal still needs
+        ≥5 distinct aged peers. Real apps open their own content hashes.
+      </p>
+      <div class="metrics" id="sealed-metrics" aria-live="polite"></div>
+      <pre
+        class="secret-box"
+        id="sealed-list"
+        style="font-size: 0.75rem; max-height: 14rem; overflow: auto"
+      ></pre>
+
+      <h2>Seal witnesses</h2>
+      <p class="lede" style="font-size: 0.85rem">
+        Who entered each sealed stamp (<code>witness_ids</code>). Click a key
+        to copy. Newest seals first.
+      </p>
+      <div class="seal-witness-wrap" id="seal-witnesses" aria-live="polite"></div>
+    </main>
+
+    <footer class="site-footer">
+      <strong>Kairos</strong> · live Freenet telemetry
+    </footer>
+    <script type="module" src="app.js?v=20260731ar"></script>
+    <script type="module" src="live.bundle.js?v=20260731ar"></script>
+  </body>
+</html>
